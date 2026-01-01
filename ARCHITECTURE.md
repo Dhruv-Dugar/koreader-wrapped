@@ -110,7 +110,7 @@ CREATE TABLE page_stat_data (
 | **Styling** | Tailwind CSS + Framer Motion | Rapid development, smooth animations for "wrapped" experience |
 | **Backend** | Next.js API Routes or Python FastAPI | SQLite parsing, complex statistics |
 | **Database** | PostgreSQL (Supabase/Neon) | User data, processed statistics, leaderboards |
-| **Auth** | NextAuth.js or Supabase Auth | OAuth (Google, GitHub), magic links |
+| **Auth** | Email/Password + Claim Codes | Simple auth, Kindle-friendly (see below) |
 | **Storage** | S3/R2/Supabase Storage | Store uploaded SQLite files |
 | **Cache** | Redis (Upstash) | Leaderboard caching, rate limiting |
 | **Hosting** | Vercel / Railway | Easy deployment, serverless functions |
@@ -119,25 +119,80 @@ CREATE TABLE page_stat_data (
 
 ## 4. Core Modules
 
-### 4.1 Authentication Module
+### 4.1 Authentication Module (Kindle-Friendly Design)
+
+**Problem:** OAuth is painful on e-ink devices (slow browsers, tedious typing, multiple redirects).
+
+**Solution:** Two-phase upload + claim system:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        KINDLE-FRIENDLY AUTH FLOW                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   PHASE 1: Upload from Kindle (No login required)                           │
+│   ─────────────────────────────────────────────────                         │
+│   1. User visits upload page on Kindle browser                              │
+│   2. Uploads statistics.sqlite3 file                                        │
+│   3. Server processes file, generates 6-char CLAIM CODE                     │
+│   4. Shows: "Your code: ABC123 - use this to view stats on any device"      │
+│                                                                              │
+│   PHASE 2: Claim on Desktop/Phone (Simple login)                            │
+│   ───────────────────────────────────────────────                           │
+│   1. User visits site on desktop/phone                                      │
+│   2. Creates account with email + password (simple form)                    │
+│   3. Enters claim code to link upload to their account                      │
+│   4. Views full wrapped experience with animations                          │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Authentication Options:**
+
+| Method | Use Case | Complexity |
+|--------|----------|------------|
+| **Email + Password** | Primary auth method | Simple, works everywhere |
+| **Magic Link** | Passwordless option | Medium, email required |
+| **Claim Code Only** | Anonymous viewing | Simplest, no account needed |
 
 ```typescript
 // User model
 interface User {
   id: string;
   email: string;
-  name: string;
-  avatarUrl?: string;
+  passwordHash: string;      // bcrypt hashed
+  name?: string;
   createdAt: Date;
   lastUploadAt?: Date;
 }
+
+// Anonymous upload with claim code
+interface Upload {
+  id: string;
+  claimCode: string;         // e.g., "ABC123" - 6 alphanumeric chars
+  userId?: string;           // null until claimed
+  fileHash: string;
+  stats: ProcessedStats;
+  createdAt: Date;
+  expiresAt: Date;           // Unclaimed uploads expire in 7 days
+}
 ```
 
-**Features:**
-- OAuth login (Google, GitHub, Apple)
-- Email magic link option
-- Session management with JWT
-- Account deletion with data purge
+**API Endpoints for Auth:**
+```
+POST   /api/auth/register    - Create account (email + password)
+POST   /api/auth/login       - Login with email + password
+POST   /api/auth/logout      - End session
+POST   /api/upload           - Anonymous upload, returns claim code
+POST   /api/claim            - Link upload to account via claim code
+GET    /api/stats/:code      - View stats by claim code (no login needed)
+```
+
+**Security Considerations:**
+- Passwords hashed with bcrypt (cost factor 12)
+- Claim codes are short-lived (7 days) and single-use after claiming
+- Rate limiting: 5 uploads per IP per day
+- Claim codes are case-insensitive, alphanumeric only (no confusing chars like 0/O, 1/l)
 
 ### 4.2 Upload & Processing Module
 
