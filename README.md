@@ -733,5 +733,12 @@ ORDER BY completion_pct DESC;
 
 ---
 
-*Last Updated: December 2024*
+## Authors
+
+- **Dhruv Dugar** - Project Owner
+- **Claude** (Anthropic) - Co-Author
+
+---
+
+*Last Updated: January 2026*
 *Version: 1.0*
