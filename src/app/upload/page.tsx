@@ -2,12 +2,18 @@
 
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, FileCheck, AlertCircle, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import DropZone from "@/components/upload/DropZone";
 import { parseKoReaderDb } from "@/lib/sqlite-parser";
 import { computeStatistics } from "@/lib/stats-engine";
 import { ProcessedStats } from "@/types";
+import {
+  BookIcon,
+  CheckCircleIcon,
+  AlertCircleIcon,
+  LoaderIcon,
+} from "@/components/ui/Icons";
 
 type UploadState = "idle" | "uploading" | "processing" | "success" | "error";
 
@@ -63,95 +69,110 @@ export default function UploadPage() {
   }, [router]);
 
   return (
-    <main className="min-h-screen text-white flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-4xl font-bold mb-4">Upload Your Stats</h1>
-          <p className="text-gray-400">
-            Drop your <code className="bg-white/10 px-2 py-1 rounded">statistics.sqlite3</code> file below
-          </p>
-        </motion.div>
+    <main className="min-h-screen text-ink-dark flex flex-col">
+      {/* Header */}
+      <header className="container mx-auto px-4 py-6">
+        <Link href="/" className="inline-flex items-center gap-2 text-ink-medium hover:text-ink-dark transition-colors">
+          <BookIcon size={20} />
+          <span className="font-[family-name:var(--font-playfair)] font-semibold">KoReader Wrapped</span>
+        </Link>
+      </header>
 
-        <AnimatePresence mode="wait">
-          {uploadState === "idle" && (
-            <motion.div
-              key="dropzone"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-            >
-              <DropZone onFileAccepted={handleFileUpload} />
-            </motion.div>
-          )}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-2xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-8"
+          >
+            <div className="chapter-divider mb-6 max-w-xs mx-auto">
+              <span className="text-sm tracking-widest uppercase">Chapter II</span>
+            </div>
+            <h1 className="font-[family-name:var(--font-playfair)] text-3xl md:text-4xl font-bold mb-4">
+              Upload Your Reading Data
+            </h1>
+            <p className="text-ink-medium">
+              Drop your <code className="bg-parchment px-2 py-1 rounded text-leather text-sm">statistics.sqlite3</code> file below
+            </p>
+          </motion.div>
 
-          {uploadState === "uploading" && (
-            <StatusCard
-              key="uploading"
-              icon={<Loader2 className="w-12 h-12 animate-spin text-purple-400" />}
-              title="Uploading..."
-              description="Reading your file"
-            />
-          )}
-
-          {uploadState === "processing" && (
-            <StatusCard
-              key="processing"
-              icon={<Loader2 className="w-12 h-12 animate-spin text-purple-400" />}
-              title="Processing..."
-              description="Crunching your reading data"
-            />
-          )}
-
-          {uploadState === "success" && stats && (
-            <StatusCard
-              key="success"
-              icon={<FileCheck className="w-12 h-12 text-green-400" />}
-              title="Success!"
-              description={`Found ${stats.core.totalBooksStarted} books and ${stats.core.totalPagesRead.toLocaleString()} pages read`}
-            />
-          )}
-
-          {uploadState === "error" && (
-            <motion.div
-              key="error"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-            >
-              <StatusCard
-                icon={<AlertCircle className="w-12 h-12 text-red-400" />}
-                title="Error"
-                description={error || "Something went wrong"}
-              />
-              <button
-                onClick={() => {
-                  setUploadState("idle");
-                  setError(null);
-                }}
-                className="mt-4 w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors"
+          <AnimatePresence mode="wait">
+            {uploadState === "idle" && (
+              <motion.div
+                key="dropzone"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
               >
-                Try Again
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <DropZone onFileAccepted={handleFileUpload} />
+              </motion.div>
+            )}
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mt-8 text-center text-sm text-gray-500"
-        >
-          <p>
-            Your file is processed entirely in your browser.
-            <br />
-            We never upload your raw data to our servers.
-          </p>
-        </motion.div>
+            {uploadState === "uploading" && (
+              <StatusCard
+                key="uploading"
+                icon={<LoaderIcon size={40} className="text-leather" />}
+                title="Opening the book..."
+                description="Reading your file"
+              />
+            )}
+
+            {uploadState === "processing" && (
+              <StatusCard
+                key="processing"
+                icon={<LoaderIcon size={40} className="text-leather" />}
+                title="Turning the pages..."
+                description="Discovering your reading story"
+              />
+            )}
+
+            {uploadState === "success" && stats && (
+              <StatusCard
+                key="success"
+                icon={<CheckCircleIcon size={40} className="text-forest" />}
+                title="Story discovered!"
+                description={`Found ${stats.core.totalBooksStarted} books and ${stats.core.totalPagesRead.toLocaleString()} pages read`}
+              />
+            )}
+
+            {uploadState === "error" && (
+              <motion.div
+                key="error"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+              >
+                <StatusCard
+                  icon={<AlertCircleIcon size={40} className="text-bookmarker" />}
+                  title="Something went wrong"
+                  description={error || "Failed to read your file"}
+                />
+                <button
+                  onClick={() => {
+                    setUploadState("idle");
+                    setError(null);
+                  }}
+                  className="mt-4 w-full py-3 bg-paper-sepia hover:bg-parchment border border-parchment rounded-lg transition-colors text-ink-dark"
+                >
+                  Try Again
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-10 text-center"
+          >
+            <p className="text-sm text-ink-light italic">
+              Your file is processed entirely in your browser.
+              <br />
+              Your reading data never leaves your device.
+            </p>
+          </motion.div>
+        </div>
       </div>
     </main>
   );
@@ -171,11 +192,11 @@ function StatusCard({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className="bg-white/5 backdrop-blur-lg rounded-2xl p-12 text-center"
+      className="book-card rounded-xl p-12 text-center"
     >
       <div className="flex justify-center mb-4">{icon}</div>
-      <h2 className="text-2xl font-semibold mb-2">{title}</h2>
-      <p className="text-gray-400">{description}</p>
+      <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-semibold mb-2">{title}</h2>
+      <p className="text-ink-medium">{description}</p>
     </motion.div>
   );
 }

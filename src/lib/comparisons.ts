@@ -19,6 +19,27 @@ export const COMPARISONS = {
   WAR_AND_PEACE_PAGES: 1_225,
 };
 
+// Icon types for achievements and comparisons
+export type IconType =
+  | "book"
+  | "flame"
+  | "trophy"
+  | "owl"
+  | "bird"
+  | "runner"
+  | "stack"
+  | "award"
+  | "moon"
+  | "sun"
+  | "mountain"
+  | "film"
+  | "plane"
+  | "tower"
+  | "wall"
+  | "sparkle"
+  | "sword"
+  | "clock";
+
 // Achievement definitions
 export const ACHIEVEMENTS: Record<string, Omit<Achievement, "unlockedAt">> = {
   // Reading volume
@@ -26,25 +47,25 @@ export const ACHIEVEMENTS: Record<string, Omit<Achievement, "unlockedAt">> = {
     id: "first_book",
     name: "First Steps",
     description: "Complete your first book",
-    icon: "📖",
+    icon: "book",
   },
   bookworm: {
     id: "bookworm",
     name: "Bookworm",
     description: "Read 10 books",
-    icon: "🐛",
+    icon: "book",
   },
   bibliophile: {
     id: "bibliophile",
     name: "Bibliophile",
     description: "Read 50 books",
-    icon: "📚",
+    icon: "stack",
   },
   library: {
     id: "library",
     name: "Walking Library",
     description: "Read 100 books",
-    icon: "🏛️",
+    icon: "stack",
   },
 
   // Streaks
@@ -52,19 +73,19 @@ export const ACHIEVEMENTS: Record<string, Omit<Achievement, "unlockedAt">> = {
     id: "week_streak",
     name: "Week Warrior",
     description: "7-day reading streak",
-    icon: "🔥",
+    icon: "flame",
   },
   month_streak: {
     id: "month_streak",
     name: "Monthly Master",
     description: "30-day reading streak",
-    icon: "⚡",
+    icon: "flame",
   },
   quarter_streak: {
     id: "quarter_streak",
     name: "Quarterly Quest",
     description: "90-day reading streak",
-    icon: "🏆",
+    icon: "trophy",
   },
 
   // Time-based
@@ -72,19 +93,19 @@ export const ACHIEVEMENTS: Record<string, Omit<Achievement, "unlockedAt">> = {
     id: "night_owl",
     name: "Night Owl",
     description: "Read 100 hours after midnight",
-    icon: "🦉",
+    icon: "owl",
   },
   early_bird: {
     id: "early_bird",
     name: "Early Bird",
     description: "Read 100 hours before 7am",
-    icon: "🐦",
+    icon: "bird",
   },
   marathon: {
     id: "marathon",
     name: "Marathon Reader",
     description: "5+ hour reading session",
-    icon: "🏃",
+    icon: "runner",
   },
 
   // Engagement
@@ -92,13 +113,13 @@ export const ACHIEVEMENTS: Record<string, Omit<Achievement, "unlockedAt">> = {
     id: "highlighter",
     name: "Highlighter Hero",
     description: "100 highlights",
-    icon: "🖍️",
+    icon: "sparkle",
   },
   note_taker: {
     id: "note_taker",
     name: "Note Taker",
     description: "50 notes",
-    icon: "📝",
+    icon: "book",
   },
 
   // Special
@@ -106,25 +127,25 @@ export const ACHIEVEMENTS: Record<string, Omit<Achievement, "unlockedAt">> = {
     id: "polyglot",
     name: "Polyglot",
     description: "Read books in 3+ languages",
-    icon: "🌍",
+    icon: "stack",
   },
   series_complete: {
     id: "series_complete",
     name: "Series Slayer",
     description: "Complete a book series",
-    icon: "⚔️",
+    icon: "sword",
   },
   speed_demon: {
     id: "speed_demon",
     name: "Speed Demon",
     description: "Top 10% reading speed",
-    icon: "💨",
+    icon: "sparkle",
   },
   consistent: {
     id: "consistent",
     name: "Consistency King",
     description: "Read every month of the year",
-    icon: "👑",
+    icon: "trophy",
   },
 };
 

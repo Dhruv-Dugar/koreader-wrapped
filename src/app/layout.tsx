@@ -1,21 +1,29 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Playfair_Display, Lora, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const lora = Lora({
+  variable: "--font-lora",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "KoReader Wrapped",
-  description: "Your year in books - Spotify Wrapped style insights for KoReader",
-  keywords: ["koreader", "reading", "statistics", "wrapped", "books", "ereader"],
+  description: "Your year in books - Beautiful insights for your reading journey",
+  keywords: ["koreader", "reading", "statistics", "wrapped", "books", "ereader", "kindle"],
   authors: [{ name: "Dhruv Dugar" }],
   openGraph: {
     title: "KoReader Wrapped",
@@ -32,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen`}
+        className={`${playfair.variable} ${lora.variable} ${jetbrainsMono.variable} antialiased bg-paper-cream min-h-screen paper-texture`}
       >
         {children}
       </body>
