@@ -102,8 +102,6 @@ export async function parseKoReaderDb(
       }
     }
 
-    console.log(`Parsed ${books.length} books and ${pageStats.length} page stats`);
-
     return { books, pageStats };
   } finally {
     db.close();
