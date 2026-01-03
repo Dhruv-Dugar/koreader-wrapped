@@ -93,6 +93,14 @@ export interface TopBook {
   completionRate: number;
 }
 
+// Daily reading data for heatmap
+export interface DailyReading {
+  date: string; // YYYY-MM-DD
+  minutes: number;
+  pages: number;
+  sessions: number;
+}
+
 // Complete processed statistics
 export interface ProcessedStats {
   core: CoreStats;
@@ -101,6 +109,7 @@ export interface ProcessedStats {
   topAuthors: { author: string; books: number; hours: number }[];
   monthlyBreakdown: MonthlyBreakdown[];
   hourlyBreakdown: HourlyBreakdown[];
+  dailyReading: DailyReading[];
   rawBooks: Book[];
 }
 

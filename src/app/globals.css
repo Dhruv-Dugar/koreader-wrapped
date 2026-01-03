@@ -1,26 +1,219 @@
 @import "tailwindcss";
 
+/* Library/E-Reader Theme Colors */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Paper & Background */
+  --paper-cream: #faf6f1;
+  --paper-sepia: #f4eee5;
+  --parchment: #e8dfd3;
+  --paper-shadow: #d4c9b9;
+
+  /* Text Colors */
+  --ink-dark: #2c1810;
+  --ink-medium: #5c4033;
+  --ink-light: #8b7355;
+
+  /* Accent Colors */
+  --leather-brown: #8b5a2b;
+  --leather-dark: #6b4423;
+  --bookmarker-red: #c41e3a;
+  --gold-foil: #c9a227;
+  --forest-green: #2d5a3d;
+
+  /* Theme Variables */
+  --background: var(--paper-cream);
+  --foreground: var(--ink-dark);
+  --card-bg: var(--paper-sepia);
+  --border-color: var(--parchment);
+  --accent: var(--leather-brown);
+  --accent-hover: var(--leather-dark);
+}
+
+/* Dark Mode (E-ink Night Mode) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper-cream: #1a1814;
+    --paper-sepia: #242018;
+    --parchment: #2e2820;
+    --paper-shadow: #1a1612;
+
+    --ink-dark: #e8dfd3;
+    --ink-medium: #c4b8a8;
+    --ink-light: #8b7d6d;
+
+    --leather-brown: #c9956a;
+    --leather-dark: #a87d55;
+    --bookmarker-red: #e85a70;
+    --gold-foil: #dbb847;
+
+    --background: var(--paper-cream);
+    --foreground: var(--ink-dark);
+    --card-bg: var(--paper-sepia);
+    --border-color: var(--parchment);
+    --accent: var(--leather-brown);
+    --accent-hover: var(--leather-dark);
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-paper-cream: var(--paper-cream);
+  --color-paper-sepia: var(--paper-sepia);
+  --color-parchment: var(--parchment);
+  --color-paper-shadow: var(--paper-shadow);
+  --color-ink-dark: var(--ink-dark);
+  --color-ink-medium: var(--ink-medium);
+  --color-ink-light: var(--ink-light);
+  --color-leather: var(--leather-brown);
+  --color-leather-dark: var(--leather-dark);
+  --color-bookmarker: var(--bookmarker-red);
+  --color-gold: var(--gold-foil);
+  --color-forest: var(--forest-green);
+  --color-card: var(--card-bg);
+  --color-border: var(--border-color);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --font-serif: var(--font-playfair);
+  --font-body: var(--font-lora);
+  --font-mono: var(--font-jetbrains);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body, 'Lora', Georgia, serif);
+}
+
+/* Paper texture overlay */
+.paper-texture {
+  position: relative;
+}
+
+.paper-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+/* Book card styling */
+.book-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow:
+    0 1px 3px rgba(44, 24, 16, 0.08),
+    0 4px 12px rgba(44, 24, 16, 0.04);
+  transition: all 0.3s ease;
+}
+
+.book-card:hover {
+  box-shadow:
+    0 4px 8px rgba(44, 24, 16, 0.12),
+    0 8px 24px rgba(44, 24, 16, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Bookmark button */
+.bookmark-btn {
+  background: var(--accent);
+  color: var(--paper-cream);
+  font-weight: 600;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.bookmark-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.bookmark-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid var(--background);
+}
+
+/* Chapter divider */
+.chapter-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--ink-light);
+}
+
+.chapter-divider::before,
+.chapter-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border-color) 20%,
+    var(--border-color) 80%,
+    transparent
+  );
+}
+
+/* Page number styling */
+.page-number {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.75rem;
+  color: var(--ink-light);
+  letter-spacing: 0.05em;
+}
+
+/* Decorative quotation marks */
+.quote-mark {
+  font-family: var(--font-serif, 'Playfair Display', serif);
+  font-size: 4rem;
+  line-height: 1;
+  color: var(--leather-brown);
+  opacity: 0.3;
+}
+
+/* Scroll styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--parchment);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ink-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-medium);
+}
+
+/* Page turn animation keyframes */
+@keyframes pageTurn {
+  0% {
+    transform: perspective(1200px) rotateY(0deg);
+    transform-origin: left center;
+  }
+  100% {
+    transform: perspective(1200px) rotateY(-180deg);
+    transform-origin: left center;
+  }
+}
+
+.page-turn-enter {
+  animation: pageTurn 0.6s ease-in-out forwards;
 }

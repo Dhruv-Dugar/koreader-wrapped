@@ -8,6 +8,7 @@ import {
   HourlyBreakdown,
   TopBook,
   Achievement,
+  DailyReading,
 } from "@/types";
 import { COMPARISONS, ACHIEVEMENTS } from "./comparisons";
 
@@ -21,6 +22,7 @@ export function computeStatistics(
   const topAuthors = computeTopAuthors(books);
   const monthlyBreakdown = computeMonthlyBreakdown(pageStats);
   const hourlyBreakdown = computeHourlyBreakdown(pageStats);
+  const dailyReading = computeDailyReading(pageStats);
 
   return {
     core,
@@ -29,6 +31,7 @@ export function computeStatistics(
     topAuthors,
     monthlyBreakdown,
     hourlyBreakdown,
+    dailyReading,
     rawBooks: books,
   };
 }
@@ -188,14 +191,14 @@ function getCharacterComparison(chars: number) {
       type: "moon_distance",
       value: (chars / COMPARISONS.MOON_DISTANCE_CHARS).toFixed(2),
       description: "Your characters could reach the Moon!",
-      icon: "🌙",
+      icon: "moon",
     };
   } else if (chars >= COMPARISONS.GREAT_WALL_CHARS) {
     return {
       type: "great_wall",
       value: (chars / COMPARISONS.GREAT_WALL_CHARS).toFixed(1),
       description: "You could spell out the Great Wall of China!",
-      icon: "🏯",
+      icon: "wall",
     };
   } else if (chars >= COMPARISONS.EVEREST_HEIGHT_CHARS) {
     const times = (chars / COMPARISONS.EVEREST_HEIGHT_CHARS).toFixed(1);
@@ -203,14 +206,14 @@ function getCharacterComparison(chars: number) {
       type: "everest_height",
       value: times,
       description: `Stacked, your letters would reach ${times}x the height of Mount Everest!`,
-      icon: "🏔️",
+      icon: "mountain",
     };
   }
   return {
     type: "eiffel_tower",
     value: (chars / 1_650_000).toFixed(1),
     description: "Your characters could climb the Eiffel Tower!",
-    icon: "🗼",
+    icon: "tower",
   };
 }
 
@@ -223,21 +226,21 @@ function getTimeComparison(seconds: number) {
       type: "around_world",
       value: Math.floor(hours / 40).toString(),
       description: `You could have flown around the world ${Math.floor(hours / 40)} times!`,
-      icon: "✈️",
+      icon: "plane",
     };
   } else if (hours >= 100) {
     return {
       type: "movies",
       value: Math.floor(movies).toString(),
       description: `That's ${Math.floor(movies)} movies worth of reading!`,
-      icon: "🎬",
+      icon: "film",
     };
   }
   return {
     type: "marathons",
     value: (hours / 4).toFixed(1),
     description: `You could have run ${(hours / 4).toFixed(1)} marathons!`,
-    icon: "🏃",
+    icon: "runner",
   };
 }
 
@@ -266,31 +269,31 @@ function determineReaderPersona(
     return {
       type: "Night Owl",
       description: "You prefer reading under the stars",
-      icon: "🦉",
+      icon: "owl",
     };
   } else if (morningHours > nightHours * 2) {
     return {
       type: "Early Bird",
       description: "You catch words with the worm",
-      icon: "🐦",
+      icon: "bird",
     };
   } else if (weekendRatio > 0.6) {
     return {
       type: "Weekend Warrior",
       description: "Weekends are for reading marathons",
-      icon: "⚔️",
+      icon: "sword",
     };
   } else if (core.longestStreak >= 14) {
     return {
       type: "Consistent Reader",
       description: "Steady and reliable, page after page",
-      icon: "📚",
+      icon: "stack",
     };
   }
   return {
     type: "Binge Reader",
     description: "When you read, you REALLY read",
-    icon: "🔥",
+    icon: "flame",
   };
 }
 
@@ -448,4 +451,36 @@ function groupIntoSessions(
 
   sessions.push({ start: sessionStart, duration: sessionDuration });
   return sessions;
+}
+
+function computeDailyReading(pageStats: PageStatData[]): DailyReading[] {
+  const dailyMap = new Map<
+    string,
+    { minutes: number; pages: Set<string>; sessions: Set<number> }
+  >();
+
+  for (const stat of pageStats) {
+    const date = new Date(stat.start_time * 1000);
+    const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+    const existing = dailyMap.get(dateKey) || {
+      minutes: 0,
+      pages: new Set(),
+      sessions: new Set(),
+    };
+
+    existing.minutes += stat.duration / 60;
+    existing.pages.add(`${stat.id_book}-${stat.page}`);
+    existing.sessions.add(stat.start_time);
+    dailyMap.set(dateKey, existing);
+  }
+
+  return Array.from(dailyMap.entries())
+    .map(([date, data]) => ({
+      date,
+      minutes: Math.round(data.minutes),
+      pages: data.pages.size,
+      sessions: data.sessions.size,
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
 }

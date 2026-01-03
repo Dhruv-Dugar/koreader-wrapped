@@ -28,6 +28,14 @@ export async function parseKoReaderDb(
   const db = new SQL.Database(new Uint8Array(fileBuffer));
 
   try {
+    // Get list of tables to handle different KOReader database versions
+    const tablesResult = db.exec(
+      "SELECT name FROM sqlite_master WHERE type='table'"
+    );
+    const tableNames = tablesResult.length > 0
+      ? tablesResult[0].values.map((row) => row[0] as string)
+      : [];
+
     // Extract books
     const booksResult = db.exec(`
       SELECT
@@ -48,21 +56,49 @@ export async function parseKoReaderDb(
       }
     }
 
-    // Extract page statistics
-    const pageStatsResult = db.exec(`
-      SELECT id_book, page, start_time, duration, total_pages
-      FROM page_stat_data
-    `);
-
+    // Extract page statistics - try different table names
     const pageStats: PageStatData[] = [];
-    if (pageStatsResult.length > 0) {
-      const columns = pageStatsResult[0].columns;
-      for (const row of pageStatsResult[0].values) {
-        const stat: Record<string, unknown> = {};
-        columns.forEach((col, idx) => {
-          stat[col] = row[idx];
-        });
-        pageStats.push(stat as unknown as PageStatData);
+    const pageStatTableNames = ["page_stat_data", "page_stat", "pagestat"];
+    const existingPageStatTable = pageStatTableNames.find((name) =>
+      tableNames.includes(name)
+    );
+
+    if (existingPageStatTable) {
+      // Check which columns exist
+      const columnsResult = db.exec(
+        `PRAGMA table_info(${existingPageStatTable})`
+      );
+      const columnNames = columnsResult.length > 0
+        ? columnsResult[0].values.map((row) => row[1] as string)
+        : [];
+
+      // Build query based on available columns
+      const hasIdBook = columnNames.includes("id_book");
+      const hasBookId = columnNames.includes("book_id");
+      const hasTotalPages = columnNames.includes("total_pages");
+
+      const idBookCol = hasIdBook ? "id_book" : hasBookId ? "book_id" : "id_book";
+      const selectCols = [
+        `${idBookCol} as id_book`,
+        "page",
+        "start_time",
+        "duration",
+        hasTotalPages ? "total_pages" : "0 as total_pages",
+      ].join(", ");
+
+      const pageStatsResult = db.exec(
+        `SELECT ${selectCols} FROM ${existingPageStatTable}`
+      );
+
+      if (pageStatsResult.length > 0) {
+        const columns = pageStatsResult[0].columns;
+        for (const row of pageStatsResult[0].values) {
+          const stat: Record<string, unknown> = {};
+          columns.forEach((col, idx) => {
+            stat[col] = row[idx];
+          });
+          pageStats.push(stat as unknown as PageStatData);
+        }
       }
     }
 
