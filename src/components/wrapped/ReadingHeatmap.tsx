@@ -117,9 +117,9 @@ export default function ReadingHeatmap({ dailyReading, year }: ReadingHeatmapPro
   };
 
   return (
-    <div className="w-full space-y-3">
-      {/* Quarters grid - 2x2 layout */}
-      <div className="grid grid-cols-2 gap-2">
+    <div className="w-full space-y-4 overflow-hidden">
+      {/* Quarters grid - responsive single column layout */}
+      <div className="flex flex-col gap-3">
         {quarters.map((quarter, qIdx) => (
           <QuarterGrid
             key={quarter.name}
@@ -131,21 +131,21 @@ export default function ReadingHeatmap({ dailyReading, year }: ReadingHeatmapPro
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-between px-1">
-        <p className="text-[10px] text-ink-light font-[family-name:var(--font-jetbrains)]">
+      <div className="flex items-center justify-between px-2">
+        <p className="text-xs text-ink-light font-[family-name:var(--font-jetbrains)]">
           {totalDays} days reading
         </p>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-ink-light">Less</span>
-          <div className="flex gap-[2px]">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-ink-light">Less</span>
+          <div className="flex gap-1">
             {[0, 1, 2, 3, 4].map((level) => (
               <div
                 key={level}
-                className={`w-2 h-2 rounded-[2px] ${getSpineColorClass(level)}`}
+                className={`w-3 h-3 rounded-sm ${getSpineColorClass(level)}`}
               />
             ))}
           </div>
-          <span className="text-[10px] text-ink-light">More</span>
+          <span className="text-xs text-ink-light">More</span>
         </div>
       </div>
 
@@ -171,25 +171,25 @@ function QuarterGrid({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.2 }}
-      className="bg-paper-cream rounded-lg p-2 border border-parchment"
+      className="bg-paper-cream rounded-lg p-3 border border-parchment overflow-hidden"
     >
       {/* Quarter label and months */}
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[9px] font-semibold text-ink-medium font-[family-name:var(--font-jetbrains)]">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold text-ink-medium font-[family-name:var(--font-jetbrains)]">
           {quarter.months.join(" / ")}
         </span>
       </div>
 
-      {/* Weeks grid */}
-      <div className="flex gap-[2px]">
+      {/* Weeks grid - responsive with flex-wrap */}
+      <div className="flex gap-1 flex-wrap">
         {quarter.weeks.map((week, weekIdx) => (
-          <div key={weekIdx} className="flex flex-col gap-[2px]">
+          <div key={weekIdx} className="flex flex-col gap-1">
             {week.map((day, dayIdx) => {
               const intensity = day ? getIntensity(day.minutes) : 0;
               return (
                 <div
                   key={dayIdx}
-                  className={`w-[6px] h-[6px] rounded-[1px] ${
+                  className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm ${
                     day === null ? "bg-transparent" : getSpineColorClass(intensity)
                   }`}
                   style={
