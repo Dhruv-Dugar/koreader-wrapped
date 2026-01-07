@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ProcessedStats } from "@/types";
 import { formatReadingTime } from "@/lib/comparisons";
 import ReadingHeatmap from "@/components/wrapped/ReadingHeatmap";
+import ShareCard from "@/components/wrapped/ShareCard";
+import { useShareCard } from "@/hooks/useShareCard";
 import {
   BookIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ShareIcon,
-  DownloadIcon,
   FlameIcon,
   MoonIcon,
   MountainIcon,
@@ -26,6 +26,10 @@ import {
   SwordIcon,
   StackIcon,
   SparkleIcon,
+  ShareIcon,
+  DownloadIcon,
+  LoaderIcon,
+  CheckCircleIcon,
 } from "@/components/ui/Icons";
 
 // Helper to render icon based on string type
@@ -55,6 +59,7 @@ const TOTAL_SLIDES = 9;
 export default function WrappedPage() {
   const [stats, setStats] = useState<ProcessedStats | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [showShareModal, setShowShareModal] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -99,14 +104,14 @@ export default function WrappedPage() {
     <PersonaSlide key="persona" stats={stats} />,
     <TopBooksSlide key="topbooks" stats={stats} />,
     <FunFactsSlide key="funfacts" stats={stats} />,
-    <SummarySlide key="summary" stats={stats} />,
+    <SummarySlide key="summary" stats={stats} onShare={() => setShowShareModal(true)} />,
   ];
 
   const nextSlide = () => setCurrentSlide((prev) => Math.min(prev + 1, TOTAL_SLIDES - 1));
   const prevSlide = () => setCurrentSlide((prev) => Math.max(prev - 1, 0));
 
   return (
-    <main className="min-h-screen text-ink-dark flex flex-col">
+    <main className="min-h-screen text-ink-dark flex flex-col overflow-hidden">
       {/* Header */}
       <header className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/" className="inline-flex items-center gap-2 text-ink-medium hover:text-ink-dark transition-colors">
@@ -119,11 +124,11 @@ export default function WrappedPage() {
       </header>
 
       {/* Progress bar styled as bookmark ribbon */}
-      <div className="relative h-1 bg-parchment">
+      <div className="relative h-1 bg-parchment overflow-visible">
         <motion.div
           className="absolute top-0 left-0 h-full bg-leather"
           initial={{ width: 0 }}
-          animate={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}
+          animate={{ width: `${Math.min(((currentSlide + 1) / slides.length) * 100, 100)}%` }}
           transition={{ duration: 0.3 }}
         />
         <motion.div
@@ -132,7 +137,7 @@ export default function WrappedPage() {
             clipPath: "polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%)",
           }}
           initial={{ left: 0 }}
-          animate={{ left: `calc(${((currentSlide + 1) / slides.length) * 100}% - 8px)` }}
+          animate={{ left: `calc(${Math.min(((currentSlide + 1) / slides.length) * 100, 100)}% - 8px)` }}
           transition={{ duration: 0.3 }}
         />
       </div>
@@ -189,6 +194,14 @@ export default function WrappedPage() {
           </button>
         </div>
       </div>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <ShareModal
+          stats={stats}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
     </main>
   );
 }
@@ -474,7 +487,7 @@ function FunFactsSlide({ stats }: { stats: ProcessedStats }) {
   );
 }
 
-function SummarySlide({ stats }: { stats: ProcessedStats }) {
+function SummarySlide({ stats, onShare }: { stats: ProcessedStats; onShare: () => void }) {
   return (
     <div className="text-center py-4">
       <div className="chapter-divider mb-6 max-w-xs mx-auto">
@@ -488,16 +501,15 @@ function SummarySlide({ stats }: { stats: ProcessedStats }) {
         <StatBox value={stats.core.longestStreak} label="Day Streak" color="bookmarker" />
       </div>
 
-      <div className="flex gap-3 justify-center">
-        <button className="flex items-center gap-2 bg-paper-cream hover:bg-parchment border border-parchment px-5 py-2.5 rounded-lg transition-colors text-ink-dark text-sm">
-          <ShareIcon size={16} />
-          Share
-        </button>
-        <button className="flex items-center gap-2 bookmark-btn px-5 py-2.5 rounded-lg text-sm">
-          <DownloadIcon size={16} />
-          Save Image
-        </button>
-      </div>
+      <motion.button
+        onClick={onShare}
+        className="bookmark-btn w-full py-4 rounded-lg flex items-center justify-center gap-3 text-lg"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        <ShareIcon size={20} />
+        Share Your Wrapped
+      </motion.button>
     </div>
   );
 }
@@ -525,5 +537,143 @@ function StatBox({
       </p>
       <p className="text-xs text-ink-light uppercase tracking-wider mt-1">{label}</p>
     </div>
+  );
+}
+
+// Share Modal Component
+function ShareModal({ stats, onClose }: { stats: ProcessedStats; onClose: () => void }) {
+  const { cardRef, status, error, downloadImage, shareImage, copyToClipboard, canShare } =
+    useShareCard();
+
+  const handleBackdropClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === e.currentTarget) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
+  // Close on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-dark/50 backdrop-blur-sm p-4"
+      onClick={handleBackdropClick}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-paper-cream rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+      >
+        {/* Modal Header */}
+        <div className="p-6 border-b border-parchment">
+          <div className="flex items-center justify-between">
+            <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-bold text-ink-dark">
+              Share Your Wrapped
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-parchment transition-colors text-ink-medium"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <p className="text-ink-medium mt-2">
+            Download or share your reading journey with friends!
+          </p>
+        </div>
+
+        {/* Card Preview (scaled down) */}
+        <div className="p-6 bg-parchment/30 flex justify-center">
+          <div className="relative overflow-hidden rounded-lg shadow-lg" style={{ aspectRatio: "1/1", width: "324px", height: "324px" }}>
+            <div
+              style={{
+                transform: "scale(0.3)",
+                transformOrigin: "top left",
+                width: "1080px",
+                height: "1080px",
+              }}
+            >
+              <ShareCard ref={cardRef} stats={stats} />
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="p-6 space-y-3">
+          {/* Status message */}
+          {status === "generating" && (
+            <div className="flex items-center justify-center gap-2 text-ink-medium py-2">
+              <LoaderIcon size={20} />
+              <span>Generating image...</span>
+            </div>
+          )}
+
+          {status === "success" && (
+            <div className="flex items-center justify-center gap-2 text-forest py-2">
+              <CheckCircleIcon size={20} />
+              <span>Done!</span>
+            </div>
+          )}
+
+          {error && (
+            <div className="text-bookmarker text-center py-2">
+              {error}
+            </div>
+          )}
+
+          {/* Share button (if supported) */}
+          {canShare && (
+            <button
+              onClick={shareImage}
+              disabled={status === "generating"}
+              className="bookmark-btn w-full py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <ShareIcon size={20} />
+              Share
+            </button>
+          )}
+
+          {/* Download button */}
+          <button
+            onClick={downloadImage}
+            disabled={status === "generating"}
+            className="w-full py-3 rounded-lg flex items-center justify-center gap-2 bg-paper-sepia hover:bg-parchment border border-parchment text-ink-dark transition-colors disabled:opacity-50"
+          >
+            <DownloadIcon size={20} />
+            Download Image
+          </button>
+
+          {/* Copy to clipboard */}
+          <button
+            onClick={copyToClipboard}
+            disabled={status === "generating"}
+            className="w-full py-3 rounded-lg flex items-center justify-center gap-2 bg-transparent hover:bg-parchment border border-parchment text-ink-medium transition-colors disabled:opacity-50"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            Copy to Clipboard
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }

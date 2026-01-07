@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Use Turbopack configuration
   turbopack: {
+    // Set the root directory to prevent workspace detection issues
+    root: process.cwd(),
     resolveAlias: {
       // sql.js needs these Node.js modules to be stubbed in browser
       fs: { browser: "./src/lib/empty-module.ts" },
