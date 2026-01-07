@@ -14,8 +14,31 @@ import {
 } from "@/components/ui/Icons";
 
 export default function Home() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "KoReader Wrapped",
+    "url": "https://kowrapped.netlify.com",
+    "description": "Visualize your reading statistics from KOReader locally in your browser.",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Dhruv Dugar"
+    }
+  };
+
   return (
     <main className="min-h-screen text-ink-dark">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24 text-center">
         <motion.div
