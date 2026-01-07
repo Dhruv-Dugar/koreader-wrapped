@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -57,6 +58,7 @@ export default function UploadPage() {
       sessionStorage.setItem("koreaderStats", JSON.stringify(processedStats));
 
       setUploadState("success");
+      track("file_processed");
 
       // Navigate to wrapped after a brief delay
       setTimeout(() => {
