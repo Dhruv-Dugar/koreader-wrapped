@@ -600,8 +600,8 @@ function ShareModal({ stats, onClose }: { stats: ProcessedStats; onClose: () => 
         </div>
 
         {/* Card Preview (scaled down) */}
-        <div className="p-6 bg-parchment/30">
-          <div className="relative overflow-hidden rounded-lg shadow-lg" style={{ aspectRatio: "1/1" }}>
+        <div className="p-6 bg-parchment/30 flex justify-center">
+          <div className="relative overflow-hidden rounded-lg shadow-lg" style={{ aspectRatio: "1/1", width: "324px", height: "324px" }}>
             <div
               style={{
                 transform: "scale(0.3)",
@@ -612,11 +612,6 @@ function ShareModal({ stats, onClose }: { stats: ProcessedStats; onClose: () => 
             >
               <ShareCard ref={cardRef} stats={stats} />
             </div>
-            {/* Overlay to show scaled preview properly */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{ background: "transparent" }}
-            />
           </div>
         </div>
 
