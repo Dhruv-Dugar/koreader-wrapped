@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useMemo, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ProcessedStats } from "@/types";
+import { ProcessedStats, Book, PageStatData } from "@/types";
+import { computeStatistics } from "@/lib/stats-engine";
 import { formatReadingTime } from "@/lib/comparisons";
 import ReadingHeatmap from "@/components/wrapped/ReadingHeatmap";
 import ShareCard from "@/components/wrapped/ShareCard";
@@ -13,63 +14,79 @@ import {
   BookIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  FlameIcon,
-  MoonIcon,
-  MountainIcon,
-  TowerIcon,
-  WallIcon,
-  FilmIcon,
-  PlaneIcon,
-  RunnerIcon,
-  OwlIcon,
-  BirdIcon,
-  SwordIcon,
-  StackIcon,
-  SparkleIcon,
   ShareIcon,
   DownloadIcon,
   LoaderIcon,
   CheckCircleIcon,
 } from "@/components/ui/Icons";
-
-// Helper to render icon based on string type
-function IconRenderer({ icon, size = 48, className = "" }: { icon: string; size?: number; className?: string }) {
-  const iconMap: Record<string, React.ReactNode> = {
-    moon: <MoonIcon size={size} className={className} />,
-    mountain: <MountainIcon size={size} className={className} />,
-    tower: <TowerIcon size={size} className={className} />,
-    wall: <WallIcon size={size} className={className} />,
-    film: <FilmIcon size={size} className={className} />,
-    plane: <PlaneIcon size={size} className={className} />,
-    runner: <RunnerIcon size={size} className={className} />,
-    flame: <FlameIcon size={size} className={className} />,
-    owl: <OwlIcon size={size} className={className} />,
-    bird: <BirdIcon size={size} className={className} />,
-    sword: <SwordIcon size={size} className={className} />,
-    stack: <StackIcon size={size} className={className} />,
-    sparkle: <SparkleIcon size={size} className={className} />,
-    book: <BookIcon size={size} className={className} />,
-  };
-
-  return iconMap[icon] || <BookIcon size={size} className={className} />;
-}
+import { StatBox } from "@/components/stats/StatBox";
+import { LargeStatCard } from "@/components/stats/LargeStatCard";
+import { IconRenderer } from "@/components/ui/IconRenderer";
 
 const TOTAL_SLIDES = 9;
 
+function WrappedPageContent() {
+    const [stats, setStats] = useState<(ProcessedStats & {rawBooks: Book[], pageStats: PageStatData[]}) | null>(null);
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const id = searchParams.get("id");
+  
+    useEffect(() => {
+      if (id) {
+        fetch(`/api/stats/${id}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.error) {
+              router.push("/upload");
+            } else {
+              setStats(data);
+            }
+          });
+      } else {
+        const stored = localStorage.getItem("koreaderRawData");
+        if (stored) {
+          const rawData = JSON.parse(stored);
+          const processedStats = computeStatistics(rawData.books, rawData.pageStats);
+          setStats({...processedStats, rawBooks: rawData.books, pageStats: rawData.pageStats});
+        } else {
+          router.push("/upload");
+        }
+      }
+    }, [id, router]);
+  
+    if (!stats) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-paper-cream">
+          <div className="text-ink-medium font-[family-name:var(--font-playfair)] italic">
+            Opening your story...
+          </div>
+        </div>
+      );
+    }
+  
+    return <Slideshow initialStats={stats} />;
+  }
+
 export default function WrappedPage() {
-  const [stats, setStats] = useState<ProcessedStats | null>(null);
+    return <Suspense fallback={<div>Loading...</div>}><WrappedPageContent /></Suspense>
+}
+
+
+function Slideshow({ initialStats }: { initialStats: ProcessedStats & { rawBooks: Book[], pageStats: PageStatData[] } }) {
+  const [stats, setStats] = useState<ProcessedStats>(initialStats);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
-  const router = useRouter();
+  const [selectedYear, setSelectedYear] = useState<number | 'all-time'>('all-time');
+
+  const availableYears = useMemo(() => {
+    const years = new Set(initialStats.pageStats.map(p => new Date(p.start_time * 1000).getFullYear()));
+    return Array.from(years).sort((a, b) => b - a);
+  }, [initialStats.pageStats]);
 
   useEffect(() => {
-    const stored = localStorage.getItem("koreaderStats");
-    if (stored) {
-      setStats(JSON.parse(stored));
-    } else {
-      router.push("/upload");
-    }
-  }, [router]);
+    const newStats = computeStatistics(initialStats.rawBooks, initialStats.pageStats, selectedYear);
+    setStats(newStats);
+  }, [initialStats, selectedYear]);
 
   // Arrow key navigation - must be before any conditional returns
   useEffect(() => {
@@ -85,21 +102,11 @@ export default function WrappedPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  if (!stats) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-paper-cream">
-        <div className="text-ink-medium font-[family-name:var(--font-playfair)] italic">
-          Opening your story...
-        </div>
-      </div>
-    );
-  }
-
   const slides = [
     <IntroSlide key="intro" />,
-    <BooksReadSlide key="books" stats={stats} />,
-    <TimeSpentSlide key="time" stats={stats} />,
-    <StreakSlide key="streak" stats={stats} />,
+    <LargeStatCard key="books" label="You explored" value={stats.core.totalBooksStarted} unit="books" color="leather" />,
+    <LargeStatCard key="time" label="You spent" value={formatReadingTime(stats.core.totalReadingTimeSeconds)} unit="reading" color="forest" comparison={stats.fun.timeComparison} />,
+    <LargeStatCard key="streak" label="Your longest streak" value={stats.core.longestStreak} unit="consecutive days" color="gold" icon="flame" />,
     <ReadingCalendarSlide key="calendar" stats={stats} />,
     <PersonaSlide key="persona" stats={stats} />,
     <TopBooksSlide key="topbooks" stats={stats} />,
@@ -118,9 +125,21 @@ export default function WrappedPage() {
           <BookIcon size={20} />
           <span className="font-[family-name:var(--font-playfair)] font-semibold">KoReader Wrapped</span>
         </Link>
-        <span className="page-number">
-          Page {currentSlide + 1} of {slides.length}
-        </span>
+        <div className="flex items-center gap-4">
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value === 'all-time' ? 'all-time' : Number(e.target.value))}
+            className="bg-paper-sepia border border-parchment rounded-md px-2 py-1 text-sm text-ink-dark"
+          >
+            <option value="all-time">All Time</option>
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+          <span className="page-number">
+            Page {currentSlide + 1} of {slides.length}
+          </span>
+        </div>
       </header>
 
       {/* Progress bar styled as bookmark ribbon */}
@@ -206,6 +225,7 @@ export default function WrappedPage() {
   );
 }
 
+
 // Slide Components
 function IntroSlide() {
   return (
@@ -228,91 +248,6 @@ function IntroSlide() {
           Let&apos;s discover your reading story...
         </p>
       </motion.div>
-    </div>
-  );
-}
-
-function BooksReadSlide({ stats }: { stats: ProcessedStats }) {
-  return (
-    <div className="text-center py-6">
-      <p className="text-ink-light mb-4 uppercase tracking-widest text-sm">You explored</p>
-      <motion.p
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", delay: 0.2 }}
-        className="font-[family-name:var(--font-playfair)] text-7xl md:text-8xl font-bold text-leather"
-      >
-        {stats.core.totalBooksStarted}
-      </motion.p>
-      <p className="font-[family-name:var(--font-playfair)] text-2xl mt-4 text-ink-dark">books</p>
-      {stats.core.totalBooksCompleted > 0 && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-ink-medium mt-4 italic"
-        >
-          and completed {stats.core.totalBooksCompleted} of them
-        </motion.p>
-      )}
-    </div>
-  );
-}
-
-function TimeSpentSlide({ stats }: { stats: ProcessedStats }) {
-  const comparison = stats.fun.timeComparison;
-
-  return (
-    <div className="text-center py-6">
-      <p className="text-ink-light mb-4 uppercase tracking-widest text-sm">You spent</p>
-      <motion.p
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", delay: 0.2 }}
-        className="font-[family-name:var(--font-playfair)] text-5xl md:text-6xl font-bold text-forest"
-      >
-        {formatReadingTime(stats.core.totalReadingTimeSeconds)}
-      </motion.p>
-      <p className="font-[family-name:var(--font-playfair)] text-2xl mt-4 text-ink-dark">reading</p>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="mt-8 bg-paper-cream rounded-lg p-4 border border-parchment"
-      >
-        <div className="flex justify-center mb-2">
-          <IconRenderer icon={comparison.icon} size={32} className="text-leather" />
-        </div>
-        <p className="text-ink-medium text-sm italic">{comparison.description}</p>
-      </motion.div>
-    </div>
-  );
-}
-
-function StreakSlide({ stats }: { stats: ProcessedStats }) {
-  return (
-    <div className="text-center py-6">
-      <p className="text-ink-light mb-4 uppercase tracking-widest text-sm">Your longest streak</p>
-      <motion.div
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", delay: 0.2 }}
-      >
-        <p className="font-[family-name:var(--font-playfair)] text-7xl md:text-8xl font-bold text-gold">
-          {stats.core.longestStreak}
-        </p>
-        <p className="font-[family-name:var(--font-playfair)] text-2xl mt-4 text-ink-dark">consecutive days</p>
-      </motion.div>
-      {stats.core.longestStreak >= 7 && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.6, type: "spring" }}
-          className="mt-6"
-        >
-          <FlameIcon size={40} className="text-gold mx-auto" />
-        </motion.div>
-      )}
     </div>
   );
 }
@@ -514,45 +449,16 @@ function SummarySlide({ stats, onShare }: { stats: ProcessedStats; onShare: () =
   );
 }
 
-function StatBox({
-  value,
-  label,
-  color
-}: {
-  value: string | number;
-  label: string;
-  color: "leather" | "forest" | "gold" | "bookmarker";
-}) {
-  const colorClasses = {
-    leather: "text-leather",
-    forest: "text-forest",
-    gold: "text-gold",
-    bookmarker: "text-bookmarker",
-  };
-
-  return (
-    <div className="bg-paper-cream rounded-lg p-4 border border-parchment">
-      <p className={`font-[family-name:var(--font-playfair)] text-2xl font-bold ${colorClasses[color]}`}>
-        {value}
-      </p>
-      <p className="text-xs text-ink-light uppercase tracking-wider mt-1">{label}</p>
-    </div>
-  );
-}
-
 // Share Modal Component
 function ShareModal({ stats, onClose }: { stats: ProcessedStats; onClose: () => void }) {
   const { cardRef, status, error, downloadImage, shareImage, copyToClipboard, canShare } =
     useShareCard();
 
-  const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
+  const handleBackdropClick = (e: React.MouseEvent) => {
       if (e.target === e.currentTarget) {
         onClose();
       }
-    },
-    [onClose]
-  );
+    };
 
   // Close on escape key
   useEffect(() => {
