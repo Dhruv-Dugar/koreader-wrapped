@@ -14,15 +14,28 @@ import { COMPARISONS, ACHIEVEMENTS } from "./comparisons";
 
 export function computeStatistics(
   books: Book[],
-  pageStats: PageStatData[]
+  pageStats: PageStatData[],
+  year: number | "all-time" = "all-time"
 ): ProcessedStats {
-  const core = computeCoreStats(books, pageStats);
-  const fun = computeFunStats(books, pageStats, core);
-  const topBooks = computeTopBooks(books);
-  const topAuthors = computeTopAuthors(books);
-  const monthlyBreakdown = computeMonthlyBreakdown(pageStats);
-  const hourlyBreakdown = computeHourlyBreakdown(pageStats);
-  const dailyReading = computeDailyReading(pageStats);
+  let filteredPageStats = pageStats;
+
+  if (year !== "all-time") {
+    filteredPageStats = pageStats.filter(p => {
+      const statYear = new Date(p.start_time * 1000).getFullYear();
+      return statYear === year;
+    });
+  }
+
+  const bookIdsInYear = new Set(filteredPageStats.map(p => p.id_book));
+  const filteredBooks = books.filter(b => bookIdsInYear.has(b.id));
+
+  const dailyReading = computeDailyReading(filteredPageStats);
+  const core = computeCoreStats(filteredBooks, filteredPageStats);
+  const fun = computeFunStats(filteredBooks, filteredPageStats, core, dailyReading);
+  const topBooks = computeTopBooks(filteredBooks);
+  const topAuthors = computeTopAuthors(filteredBooks);
+  const monthlyBreakdown = computeMonthlyBreakdown(filteredPageStats);
+  const hourlyBreakdown = computeHourlyBreakdown(filteredPageStats);
 
   return {
     core,
@@ -32,7 +45,7 @@ export function computeStatistics(
     monthlyBreakdown,
     hourlyBreakdown,
     dailyReading,
-    rawBooks: books,
+    rawBooks: filteredBooks,
   };
 }
 
@@ -159,7 +172,8 @@ function computeStreaks(pageStats: PageStatData[]): {
 function computeFunStats(
   books: Book[],
   pageStats: PageStatData[],
-  core: CoreStats
+  core: CoreStats,
+  dailyReading: DailyReading[]
 ): FunStats {
   // Estimate characters (avg 1500 chars per page)
   const totalCharactersRead = core.totalPagesRead * 1500;
@@ -174,7 +188,7 @@ function computeFunStats(
   const readerPersona = determineReaderPersona(pageStats, core);
 
   // Calculate achievements
-  const achievements = calculateAchievements(books, pageStats, core);
+  const achievements = calculateAchievements(books, pageStats, core, dailyReading);
 
   return {
     totalCharactersRead,
@@ -300,7 +314,8 @@ function determineReaderPersona(
 function calculateAchievements(
   books: Book[],
   pageStats: PageStatData[],
-  core: CoreStats
+  core: CoreStats,
+  dailyReadings: DailyReading[]
 ): Achievement[] {
   const unlocked: Achievement[] = [];
 
@@ -314,11 +329,17 @@ function calculateAchievements(
   if (core.totalBooksCompleted >= 50) {
     unlocked.push({ ...ACHIEVEMENTS.bibliophile, unlockedAt: new Date() });
   }
+  if (core.totalBooksCompleted >= 100) {
+    unlocked.push({ ...ACHIEVEMENTS.library, unlockedAt: new Date() });
+  }
   if (core.longestStreak >= 7) {
     unlocked.push({ ...ACHIEVEMENTS.week_streak, unlockedAt: new Date() });
   }
   if (core.longestStreak >= 30) {
     unlocked.push({ ...ACHIEVEMENTS.month_streak, unlockedAt: new Date() });
+  }
+  if (core.longestStreak >= 90) {
+    unlocked.push({ ...ACHIEVEMENTS.consistency_king, unlockedAt: new Date() });
   }
   if (core.totalHighlights >= 100) {
     unlocked.push({ ...ACHIEVEMENTS.highlighter, unlockedAt: new Date() });
@@ -332,6 +353,32 @@ function calculateAchievements(
   if (languages.size >= 3) {
     unlocked.push({ ...ACHIEVEMENTS.polyglot, unlockedAt: new Date() });
   }
+
+  // Marathon Reader check
+  if (dailyReadings.some(day => day.minutes > 12 * 60)) {
+    unlocked.push({ ...ACHIEVEMENTS.marathon, unlockedAt: new Date() });
+  }
+
+  // Quarterly Quest check
+  const quartersByYear = new Map<number, Set<number>>();
+  for (const stat of pageStats) {
+    const date = new Date(stat.start_time * 1000);
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const quarter = Math.floor(month / 3) + 1;
+    if (!quartersByYear.has(year)) {
+        quartersByYear.set(year, new Set());
+    }
+    quartersByYear.get(year)!.add(quarter);
+  }
+
+  for (const quarters of quartersByYear.values()) {
+    if (quarters.size === 4) {
+        unlocked.push({ ...ACHIEVEMENTS.quarterly_quest, unlockedAt: new Date() });
+        break;
+    }
+  }
+
 
   return unlocked;
 }

@@ -1,16 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Use Turbopack configuration
-  turbopack: {
-    // Set the root directory to prevent workspace detection issues
-    root: process.cwd(),
-    resolveAlias: {
-      // sql.js needs these Node.js modules to be stubbed in browser
-      fs: { browser: "./src/lib/empty-module.ts" },
-      path: { browser: "./src/lib/empty-module.ts" },
-      crypto: { browser: "./src/lib/empty-module.ts" },
-    },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+      };
+    }
+    return config;
   },
   // Ensure sql.js wasm files can be loaded
   async headers() {

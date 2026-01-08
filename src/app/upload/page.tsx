@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -22,7 +22,14 @@ export default function UploadPage() {
   const [uploadState, setUploadState] = useState<UploadState>("idle");
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<ProcessedStats | null>(null);
+  const [hasPreviousData, setHasPreviousData] = useState(false);
   const router = useRouter();
+
+  // Check for existing data on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("koreaderStats");
+    setHasPreviousData(!!stored);
+  }, []);
 
   const handleFileUpload = useCallback(async (file: File) => {
     setUploadState("uploading");
@@ -54,8 +61,9 @@ export default function UploadPage() {
       const processedStats = computeStatistics(books, pageStats);
       setStats(processedStats);
 
-      // Store in sessionStorage for the wrapped page
-      sessionStorage.setItem("koreaderStats", JSON.stringify(processedStats));
+      // Store in localStorage for persistence across sessions
+      localStorage.setItem("koreaderStats", JSON.stringify(processedStats));
+      localStorage.setItem("koreaderStatsTimestamp", new Date().toISOString());
 
       setUploadState("success");
       track("file_processed");
@@ -107,6 +115,25 @@ export default function UploadPage() {
                 exit={{ opacity: 0, scale: 0.95 }}
               >
                 <DropZone onFileAccepted={handleFileUpload} />
+                {hasPreviousData && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="mt-6 text-center"
+                  >
+                    <p className="text-ink-light text-sm mb-2">
+                      You have previous reading data saved
+                    </p>
+                    <Link
+                      href="/wrapped"
+                      className="inline-flex items-center gap-2 text-leather hover:text-leather-dark transition-colors font-medium"
+                    >
+                      <BookIcon size={16} />
+                      View Your Wrapped
+                    </Link>
+                  </motion.div>
+                )}
               </motion.div>
             )}
 

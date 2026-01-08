@@ -81,9 +81,9 @@ export const ACHIEVEMENTS: Record<string, Omit<Achievement, "unlockedAt">> = {
     description: "30-day reading streak",
     icon: "flame",
   },
-  quarter_streak: {
-    id: "quarter_streak",
-    name: "Quarterly Quest",
+  consistency_king: {
+    id: "consistency_king",
+    name: "Consistency King",
     description: "90-day reading streak",
     icon: "trophy",
   },
@@ -104,7 +104,7 @@ export const ACHIEVEMENTS: Record<string, Omit<Achievement, "unlockedAt">> = {
   marathon: {
     id: "marathon",
     name: "Marathon Reader",
-    description: "5+ hour reading session",
+    description: "Read for over 12 hours in a single day",
     icon: "runner",
   },
 
@@ -141,10 +141,10 @@ export const ACHIEVEMENTS: Record<string, Omit<Achievement, "unlockedAt">> = {
     description: "Top 10% reading speed",
     icon: "sparkle",
   },
-  consistent: {
-    id: "consistent",
-    name: "Consistency King",
-    description: "Read every month of the year",
+  quarterly_quest: {
+    id: "quarterly_quest",
+    name: "Quarterly Quest",
+    description: "Read at least one book in each quarter of a year",
     icon: "trophy",
   },
 };

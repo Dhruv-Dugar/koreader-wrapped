@@ -63,7 +63,7 @@ export default function WrappedPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const stored = sessionStorage.getItem("koreaderStats");
+    const stored = localStorage.getItem("koreaderStats");
     if (stored) {
       setStats(JSON.parse(stored));
     } else {
