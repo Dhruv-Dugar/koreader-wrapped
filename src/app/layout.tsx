@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import { Playfair_Display, Lora, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
+import Navbar from "@/components/layout/Navbar";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -59,7 +61,10 @@ export default function RootLayout({
       <body
         className={`${playfair.variable} ${lora.variable} ${jetbrainsMono.variable} antialiased bg-paper-cream min-h-screen paper-texture`}
       >
-        {children}
+        <Providers>
+          <Navbar />
+          {children}
+        </Providers>
         <Analytics />
       </body>
     </html>
