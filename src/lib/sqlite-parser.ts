@@ -5,20 +5,42 @@ import type { SqlJsStatic } from "sql.js";
 let sqlPromise: Promise<SqlJsStatic> | null = null;
 
 async function getSql(): Promise<SqlJsStatic> {
-  if (typeof window === "undefined") {
-    throw new Error("sql.js can only run in the browser");
-  }
-
   if (!sqlPromise) {
-    sqlPromise = import("sql.js").then(async (initSqlJs) => {
-      const SQL = await initSqlJs.default({
-        locateFile: (file: string) => `https://sql.js.org/dist/${file}`,
+    if (typeof window === "undefined") {
+      // Server-side
+      const fs = await import("fs/promises");
+      const path = await import("path");
+      const mod = await import("module");
+      const createRequire = mod.createRequire || (mod as any).default?.createRequire;
+      
+      // Create a require function to load sql.js in CJS context
+      // Fallback for import.meta.url in case it's not defined
+      const require = createRequire(import.meta.url || path.join(process.cwd(), "src/lib/sqlite-parser.ts"));
+      
+      const initSqlJs = require("sql.js");
+      
+      const wasmPath = path.join(process.cwd(), "node_modules", "sql.js", "dist", "sql-wasm.wasm");
+      const fileBuffer = await fs.readFile(wasmPath);
+      const wasmBinary = fileBuffer.buffer.slice(
+        fileBuffer.byteOffset,
+        fileBuffer.byteOffset + fileBuffer.byteLength
+      );
+      
+      sqlPromise = initSqlJs({
+        wasmBinary,
       });
-      return SQL;
-    });
+    } else {
+      // Client-side
+      sqlPromise = import("sql.js").then(async (initSqlJs) => {
+        const SQL = await initSqlJs.default({
+          locateFile: (file: string) => `https://sql.js.org/dist/${file}`,
+        });
+        return SQL;
+      });
+    }
   }
 
-  return sqlPromise;
+  return sqlPromise as Promise<SqlJsStatic>;
 }
 
 export async function parseKoReaderDb(

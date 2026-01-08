@@ -1,14 +1,12 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { track } from "@vercel/analytics";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import DropZone from "@/components/upload/DropZone";
-import { parseKoReaderDb } from "@/lib/sqlite-parser";
-import { computeStatistics } from "@/lib/stats-engine";
-import { ProcessedStats } from "@/types";
 import {
   BookIcon,
   CheckCircleIcon,
@@ -19,50 +17,41 @@ import {
 type UploadState = "idle" | "uploading" | "processing" | "success" | "error";
 
 export default function UploadPage() {
+  const { data: session, status } = useSession();
   const [uploadState, setUploadState] = useState<UploadState>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<ProcessedStats | null>(null);
-  const [hasPreviousData, setHasPreviousData] = useState(false);
   const router = useRouter();
 
-  // Check for existing data on mount
   useEffect(() => {
-    const stored = localStorage.getItem("koreaderStats");
-    setHasPreviousData(!!stored);
-  }, []);
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+    }
+  }, [status, router]);
 
   const handleFileUpload = useCallback(async (file: File) => {
     setUploadState("uploading");
     setError(null);
 
     try {
-      // Validate file
-      if (!file.name.endsWith(".sqlite3") && !file.name.endsWith(".sqlite")) {
-        throw new Error("Please upload a valid SQLite file (.sqlite3)");
-      }
-
-      if (file.size > 50 * 1024 * 1024) {
-        throw new Error("File size must be less than 50MB");
-      }
+      const formData = new FormData();
+      formData.append("file", file);
 
       setUploadState("processing");
 
-      // Read file
-      const buffer = await file.arrayBuffer();
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-      // Parse database
-      const { books, pageStats } = await parseKoReaderDb(buffer);
-
-      if (books.length === 0) {
-        throw new Error("No reading data found in this file");
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error || "Failed to process file");
       }
 
-      // Compute statistics
-      const processedStats = computeStatistics(books, pageStats);
-      setStats(processedStats);
+      const data = await response.json();
 
       // Store in localStorage for persistence across sessions
-      localStorage.setItem("koreaderStats", JSON.stringify(processedStats));
+      localStorage.setItem("koreaderRawData", JSON.stringify(data));
       localStorage.setItem("koreaderStatsTimestamp", new Date().toISOString());
 
       setUploadState("success");
@@ -70,7 +59,7 @@ export default function UploadPage() {
 
       // Navigate to wrapped after a brief delay
       setTimeout(() => {
-        router.push("/wrapped");
+        router.push(`/wrapped?id=${data.id}`);
       }, 1500);
     } catch (err) {
       setUploadState("error");
@@ -78,16 +67,24 @@ export default function UploadPage() {
     }
   }, [router]);
 
+  if (status === "loading") {
+    return (
+        <main className="min-h-screen text-ink-dark flex items-center justify-center">
+            <LoaderIcon size={40} className="text-leather" />
+        </main>
+    )
+  }
+
+  if (status === "unauthenticated") {
+    return (
+        <main className="min-h-screen text-ink-dark flex items-center justify-center">
+            <p>Redirecting to sign in...</p>
+        </main>
+    )
+  }
+
   return (
     <main className="min-h-screen text-ink-dark flex flex-col">
-      {/* Header */}
-      <header className="container mx-auto px-4 py-6">
-        <Link href="/" className="inline-flex items-center gap-2 text-ink-medium hover:text-ink-dark transition-colors">
-          <BookIcon size={20} />
-          <span className="font-[family-name:var(--font-playfair)] font-semibold">KoReader Wrapped</span>
-        </Link>
-      </header>
-
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-2xl">
           <motion.div
@@ -115,25 +112,6 @@ export default function UploadPage() {
                 exit={{ opacity: 0, scale: 0.95 }}
               >
                 <DropZone onFileAccepted={handleFileUpload} />
-                {hasPreviousData && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="mt-6 text-center"
-                  >
-                    <p className="text-ink-light text-sm mb-2">
-                      You have previous reading data saved
-                    </p>
-                    <Link
-                      href="/wrapped"
-                      className="inline-flex items-center gap-2 text-leather hover:text-leather-dark transition-colors font-medium"
-                    >
-                      <BookIcon size={16} />
-                      View Your Wrapped
-                    </Link>
-                  </motion.div>
-                )}
               </motion.div>
             )}
 
@@ -155,12 +133,12 @@ export default function UploadPage() {
               />
             )}
 
-            {uploadState === "success" && stats && (
+            {uploadState === "success" && (
               <StatusCard
                 key="success"
                 icon={<CheckCircleIcon size={40} className="text-forest" />}
                 title="Story discovered!"
-                description={`Found ${stats.core.totalBooksStarted} books and ${stats.core.totalPagesRead.toLocaleString()} pages read`}
+                description="Redirecting you to your wrapped..."
               />
             )}
 
@@ -188,19 +166,6 @@ export default function UploadPage() {
               </motion.div>
             )}
           </AnimatePresence>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="mt-10 text-center"
-          >
-            <p className="text-sm text-ink-light italic">
-              Your file is processed entirely in your browser.
-              <br />
-              Your reading data never leaves your device.
-            </p>
-          </motion.div>
         </div>
       </div>
     </main>
