@@ -29,26 +29,28 @@ export function LargeStatCard({
   };
 
   return (
-    <div className="text-center py-6">
-      <p className="text-ink-light mb-4 uppercase tracking-widest text-sm">{label}</p>
+    <div className="text-center py-8">
+      <p className="text-ink-light mb-6 uppercase tracking-[0.3em] text-xs">{label}</p>
       <motion.div
-        initial={{ scale: 0.5, opacity: 0 }}
+        initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", delay: 0.2 }}
+        transition={{ type: "spring", delay: 0.2, damping: 12 }}
       >
-        <p className={`font-[family-name:var(--font-playfair)] text-7xl md:text-8xl font-bold ${colorClasses[color]}`}>
+        <p className={`serif-heading text-7xl md:text-8xl font-bold ${colorClasses[color]} mb-4`}>
           {value}
         </p>
-        {unit && <p className="font-[family-name:var(--font-playfair)] text-2xl mt-4 text-ink-dark">{unit}</p>}
+        {unit && <p className="serif-heading text-2xl text-ink-dark italic font-light">{unit}</p>}
       </motion.div>
       {icon && (
         <motion.div
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, scale: 0, rotate: -20 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
           transition={{ delay: 0.6, type: "spring" }}
-          className="mt-6"
+          className="mt-8"
         >
-          <IconRenderer icon={icon} size={40} className={`${colorClasses[color]} mx-auto`} />
+          <div className="w-16 h-16 mx-auto rounded-xl bg-paper-cream border border-parchment flex items-center justify-center shadow-sm">
+            <IconRenderer icon={icon} size={32} className={`${colorClasses[color]}`} />
+          </div>
         </motion.div>
       )}
       {comparison && (
@@ -56,12 +58,17 @@ export function LargeStatCard({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="mt-8 bg-paper-cream rounded-lg p-4 border border-parchment"
+          className="mt-10 bg-paper-cream/50 backdrop-blur-sm rounded-xl p-6 border border-parchment relative group overflow-hidden"
         >
-          <div className="flex justify-center mb-2">
-            <IconRenderer icon={comparison.icon} size={32} className="text-leather" />
+          <div className="absolute top-0 left-0 w-1 h-full bg-leather/20 transition-all group-hover:w-full group-hover:bg-leather/5 z-0"></div>
+          <div className="relative z-10">
+            <div className="flex justify-center mb-3">
+              <IconRenderer icon={comparison.icon} size={36} className="text-leather" />
+            </div>
+            <p className="text-ink-medium text-lg italic font-light leading-relaxed px-4">
+              &ldquo;{comparison.description}&rdquo;
+            </p>
           </div>
-          <p className="text-ink-medium text-sm italic">{comparison.description}</p>
         </motion.div>
       )}
     </div>

@@ -118,61 +118,78 @@ function Slideshow({ initialStats }: { initialStats: ProcessedStats & { rawBooks
   const prevSlide = () => setCurrentSlide((prev) => Math.max(prev - 1, 0));
 
   return (
-    <main className="min-h-screen text-ink-dark flex flex-col overflow-hidden">
+    <main className="min-h-screen text-ink-dark flex flex-col overflow-hidden paper-texture">
       {/* Header */}
-      <header className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href="/" className="inline-flex items-center gap-2 text-ink-medium hover:text-ink-dark transition-colors">
-          <BookIcon size={20} />
-          <span className="font-[family-name:var(--font-playfair)] font-semibold">KoReader Wrapped</span>
+      <header className="container mx-auto px-6 py-6 flex items-center justify-between z-10">
+        <Link href="/" className="flex items-center gap-3 text-ink-medium hover:text-leather transition-all group">
+          <div className="w-8 h-8 rounded bg-paper-sepia border border-parchment flex items-center justify-center group-hover:rotate-3 transition-transform">
+            <BookIcon size={18} className="text-leather" />
+          </div>
+          <span className="serif-heading font-bold text-xl tracking-tight">KoReader Wrapped</span>
         </Link>
-        <div className="flex items-center gap-4">
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value === 'all-time' ? 'all-time' : Number(e.target.value))}
-            className="bg-paper-sepia border border-parchment rounded-md px-2 py-1 text-sm text-ink-dark"
-          >
-            <option value="all-time">All Time</option>
-            {availableYears.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
-          <span className="page-number">
-            Page {currentSlide + 1} of {slides.length}
+        <div className="flex items-center gap-6">
+          <div className="relative group">
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value === 'all-time' ? 'all-time' : Number(e.target.value))}
+              className="appearance-none bg-paper-sepia border border-parchment rounded-lg px-4 py-1.5 text-sm font-semibold text-ink-medium cursor-pointer hover:border-leather/30 transition-colors pr-8"
+            >
+              <option value="all-time">All Time</option>
+              {availableYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-ink-light">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+          </div>
+          <span className="page-number font-mono text-xs text-ink-light uppercase tracking-widest bg-paper-sepia/50 px-3 py-1.5 rounded-full border border-parchment/30">
+            Page {currentSlide + 1} / {slides.length}
           </span>
         </div>
       </header>
 
       {/* Progress bar styled as bookmark ribbon */}
-      <div className="relative h-1 bg-parchment overflow-visible">
+      <div className="relative h-1 bg-parchment/30 overflow-visible">
         <motion.div
-          className="absolute top-0 left-0 h-full bg-leather"
+          className="absolute top-0 left-0 h-full bg-leather shadow-[0_0_10px_rgba(139,90,43,0.3)]"
           initial={{ width: 0 }}
           animate={{ width: `${Math.min(((currentSlide + 1) / slides.length) * 100, 100)}%` }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.5, ease: [0.165, 0.84, 0.44, 1] }}
         />
         <motion.div
-          className="absolute top-0 h-6 w-4 bg-bookmarker -mt-1"
+          className="absolute top-0 h-8 w-5 bg-bookmarker -mt-1 shadow-md z-20"
           style={{
-            clipPath: "polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%)",
+            clipPath: "polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%)",
           }}
           initial={{ left: 0 }}
-          animate={{ left: `calc(${Math.min(((currentSlide + 1) / slides.length) * 100, 100)}% - 8px)` }}
-          transition={{ duration: 0.3 }}
+          animate={{ left: `calc(${Math.min(((currentSlide + 1) / slides.length) * 100, 100)}% - 10px)` }}
+          transition={{ duration: 0.5, ease: [0.165, 0.84, 0.44, 1] }}
         />
       </div>
 
       {/* Slides */}
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="flex-1 flex items-center justify-center p-6 relative">
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none overflow-hidden">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] border border-leather rounded-full blur-[120px]"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] border border-gold rounded-full blur-[120px]"></div>
+        </div>
+        
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.3 }}
-            className="w-full max-w-lg"
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 1.05, y: -10 }}
+            transition={{ duration: 0.4, ease: [0.165, 0.84, 0.44, 1] }}
+            className="w-full max-w-xl z-10"
           >
-            <div className="book-card rounded-xl p-8 md:p-10">
+            <div className="book-card rounded-2xl p-10 md:p-14 relative group">
+              <div className="corner-ornament corner-top-left opacity-30 group-hover:opacity-100 transition-opacity"></div>
+              <div className="corner-ornament corner-top-right opacity-30 group-hover:opacity-100 transition-opacity"></div>
+              <div className="corner-ornament corner-bottom-left opacity-30 group-hover:opacity-100 transition-opacity"></div>
+              <div className="corner-ornament corner-bottom-right opacity-30 group-hover:opacity-100 transition-opacity"></div>
+              
               {slides[currentSlide]}
             </div>
           </motion.div>
@@ -180,25 +197,25 @@ function Slideshow({ initialStats }: { initialStats: ProcessedStats & { rawBooks
       </div>
 
       {/* Navigation */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex justify-between items-center max-w-lg mx-auto">
+      <div className="container mx-auto px-6 py-10 relative z-10">
+        <div className="flex justify-between items-center max-w-xl mx-auto">
           <button
             onClick={prevSlide}
             disabled={currentSlide === 0}
-            className="p-3 rounded-full bg-paper-sepia hover:bg-parchment border border-parchment disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="w-12 h-12 rounded-full bg-paper-sepia hover:bg-parchment border border-parchment flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:scale-110 active:scale-95 shadow-sm"
           >
-            <ChevronLeftIcon size={20} className="text-ink-dark" />
+            <ChevronLeftIcon size={24} className="text-ink-dark" />
           </button>
 
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             {slides.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentSlide(idx)}
-                className={`w-2 h-2 rounded-full transition-all ${
+                className={`h-1.5 rounded-full transition-all duration-500 ${
                   idx === currentSlide
-                    ? "bg-leather w-4"
-                    : "bg-parchment hover:bg-ink-light"
+                    ? "bg-leather w-8 shadow-[0_0_8px_rgba(139,90,43,0.3)]"
+                    : "bg-parchment hover:bg-ink-light w-1.5"
                 }`}
               />
             ))}
@@ -207,9 +224,9 @@ function Slideshow({ initialStats }: { initialStats: ProcessedStats & { rawBooks
           <button
             onClick={nextSlide}
             disabled={currentSlide === slides.length - 1}
-            className="p-3 rounded-full bg-paper-sepia hover:bg-parchment border border-parchment disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="w-12 h-12 rounded-full bg-leather hover:bg-leather-dark text-paper-cream border border-leather-dark/20 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:scale-110 active:scale-95 shadow-lg shadow-leather/20"
           >
-            <ChevronRightIcon size={20} className="text-ink-dark" />
+            <ChevronRightIcon size={24} />
           </button>
         </div>
       </div>
@@ -229,23 +246,23 @@ function Slideshow({ initialStats }: { initialStats: ProcessedStats & { rawBooks
 // Slide Components
 function IntroSlide() {
   return (
-    <div className="text-center py-8">
+    <div className="text-center py-12">
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
+        transition={{ delay: 0.2, duration: 0.6, ease: [0.165, 0.84, 0.44, 1] }}
       >
-        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-paper-cream border border-parchment flex items-center justify-center">
-          <BookIcon size={40} className="text-leather" />
+        <div className="w-24 h-24 mx-auto mb-8 rounded-2xl bg-paper-cream border border-parchment flex items-center justify-center shadow-sm group-hover:rotate-6 transition-transform">
+          <BookIcon size={48} className="text-leather" />
         </div>
-        <div className="chapter-divider mb-6 max-w-xs mx-auto">
-          <span className="text-sm tracking-widest uppercase">Chapter I</span>
+        <div className="chapter-divider mb-8 max-w-xs mx-auto">
+          <span>CHAPTER I</span>
         </div>
-        <h1 className="font-[family-name:var(--font-playfair)] text-3xl md:text-4xl font-bold mb-4 text-ink-dark">
+        <h1 className="serif-heading text-4xl md:text-5xl font-bold mb-6 text-ink-dark">
           Your Year in Books
         </h1>
-        <p className="text-lg text-ink-medium italic">
-          Let&apos;s discover your reading story...
+        <p className="text-xl text-ink-medium italic font-light">
+          Let&apos;s unveil your reading story...
         </p>
       </motion.div>
     </div>
@@ -278,39 +295,39 @@ function ReadingCalendarSlide({ stats }: { stats: ProcessedStats }) {
 
   return (
     <div className="py-2">
-      <div className="chapter-divider mb-4 max-w-xs mx-auto">
-        <span className="text-sm tracking-widest uppercase">Your {detectedYear} Library</span>
+      <div className="chapter-divider mb-8 max-w-xs mx-auto">
+        <span>THE {detectedYear} ARCHIVE</span>
       </div>
-      <p className="text-center text-ink-medium text-sm mb-4 italic">
-        Each book spine represents a day of reading
+      <p className="text-center text-ink-medium text-sm mb-6 italic font-light">
+        The rhythmic pattern of your daily devotion
       </p>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="overflow-x-auto -mx-4 px-4"
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.3 }}
+        className="overflow-x-auto -mx-6 px-6 no-scrollbar"
       >
         <ReadingHeatmap dailyReading={stats.dailyReading} />
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="mt-4 grid grid-cols-2 gap-2"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="mt-8 grid grid-cols-2 gap-4"
       >
-        <div className="bg-paper-cream rounded-lg p-3 border border-parchment text-center">
-          <p className="font-[family-name:var(--font-playfair)] text-xl font-bold text-leather">
+        <div className="bg-paper-cream/50 backdrop-blur-sm rounded-xl p-4 border border-parchment text-center hover:border-leather/30 transition-colors">
+          <p className="serif-heading text-3xl font-bold text-leather">
             {totalDays}
           </p>
-          <p className="text-xs text-ink-light">days reading</p>
+          <p className="text-xs text-ink-light uppercase tracking-widest mt-1">days reading</p>
         </div>
-        <div className="bg-paper-cream rounded-lg p-3 border border-parchment text-center">
-          <p className="font-[family-name:var(--font-playfair)] text-xl font-bold text-forest">
-            {avgMinutesPerDay} min
+        <div className="bg-paper-cream/50 backdrop-blur-sm rounded-xl p-4 border border-parchment text-center hover:border-leather/30 transition-colors">
+          <p className="serif-heading text-3xl font-bold text-forest">
+            {avgMinutesPerDay}
           </p>
-          <p className="text-xs text-ink-light">avg per day</p>
+          <p className="text-xs text-ink-light uppercase tracking-widest mt-1">avg min / day</p>
         </div>
       </motion.div>
     </div>
@@ -321,32 +338,38 @@ function PersonaSlide({ stats }: { stats: ProcessedStats }) {
   const persona = stats.fun.readerPersona;
 
   return (
-    <div className="text-center py-6">
-      <p className="text-ink-light mb-4 uppercase tracking-widest text-sm">You&apos;re a</p>
+    <div className="text-center py-8">
+      <p className="text-ink-light mb-6 uppercase tracking-[0.3em] text-xs">A Portrait of the Reader</p>
       <motion.div
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", delay: 0.2 }}
-        className="mb-4"
+        initial={{ scale: 0.5, opacity: 0, rotate: -10 }}
+        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+        transition={{ type: "spring", delay: 0.2, damping: 15 }}
+        className="mb-8"
       >
-        <IconRenderer icon={persona.icon} size={64} className="text-leather mx-auto" />
+        <div className="w-24 h-24 mx-auto rounded-full bg-paper-cream border-2 border-parchment flex items-center justify-center shadow-inner">
+          <IconRenderer icon={persona.icon} size={48} className="text-leather" />
+        </div>
       </motion.div>
       <motion.h2
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="font-[family-name:var(--font-playfair)] text-3xl font-bold text-leather"
+        className="serif-heading text-4xl font-bold text-leather mb-6"
       >
         {persona.type}
       </motion.h2>
-      <motion.p
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
-        className="text-lg text-ink-medium mt-4 italic"
+        className="relative px-4"
       >
-        {persona.description}
-      </motion.p>
+        <span className="quote-mark absolute -top-8 -left-2 opacity-10">&ldquo;</span>
+        <p className="text-xl text-ink-medium italic font-light leading-relaxed">
+          {persona.description}
+        </p>
+        <span className="quote-mark absolute -bottom-12 -right-2 opacity-10 rotate-180">&ldquo;</span>
+      </motion.div>
     </div>
   );
 }
@@ -356,28 +379,34 @@ function TopBooksSlide({ stats }: { stats: ProcessedStats }) {
 
   return (
     <div className="py-4">
-      <div className="chapter-divider mb-6 max-w-xs mx-auto">
-        <span className="text-sm tracking-widest uppercase">Your Top Books</span>
+      <div className="chapter-divider mb-8 max-w-xs mx-auto">
+        <span>CURATED SELECTIONS</span>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-4">
         {topBooks.map((item, idx) => (
           <motion.div
             key={item.book.id}
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: idx * 0.15 }}
-            className="bg-paper-cream rounded-lg p-4 flex items-center gap-4 border border-parchment"
+            transition={{ delay: 0.3 + idx * 0.15, ease: [0.165, 0.84, 0.44, 1] }}
+            className="bg-paper-cream/50 backdrop-blur-sm rounded-xl p-5 flex items-center gap-6 border border-parchment hover:border-leather/30 hover:bg-paper-cream transition-all group"
           >
-            <span className="font-[family-name:var(--font-playfair)] text-2xl font-bold text-leather w-8">
+            <div className="serif-heading text-3xl font-bold text-leather/20 group-hover:text-leather/50 transition-colors w-10 italic">
               {idx + 1}
-            </span>
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="font-[family-name:var(--font-playfair)] font-semibold truncate text-ink-dark">
+              <p className="serif-heading font-bold text-lg truncate text-ink-dark group-hover:text-leather transition-colors">
                 {item.book.title}
               </p>
-              <p className="text-sm text-ink-light">
-                {item.hoursRead.toFixed(1)} hours read
-              </p>
+              <div className="flex items-center gap-3 mt-1">
+                <span className="text-xs text-ink-light uppercase tracking-widest">
+                  {item.hoursRead.toFixed(1)} hours
+                </span>
+                <div className="w-1 h-1 rounded-full bg-parchment"></div>
+                <span className="text-xs text-ink-light uppercase tracking-widest">
+                  {Math.round(item.completionRate * 100)}% Complete
+                </span>
+              </div>
             </div>
           </motion.div>
         ))}
@@ -390,34 +419,41 @@ function FunFactsSlide({ stats }: { stats: ProcessedStats }) {
   const comparison = stats.fun.charactersComparison;
 
   return (
-    <div className="text-center py-6">
-      <div className="chapter-divider mb-6 max-w-xs mx-auto">
-        <span className="text-sm tracking-widest uppercase">Fun Fact</span>
+    <div className="text-center py-10">
+      <div className="chapter-divider mb-10 max-w-xs mx-auto">
+        <span>LITERARY MARVELS</span>
       </div>
       <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="mb-6"
+        initial={{ scale: 0.8, opacity: 0, y: 10 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.6 }}
+        className="mb-10"
       >
-        <IconRenderer icon={comparison.icon} size={56} className="text-leather mx-auto" />
+        <div className="w-20 h-20 mx-auto rounded-2xl bg-paper-cream border border-parchment flex items-center justify-center shadow-sm">
+          <IconRenderer icon={comparison.icon} size={40} className="text-leather" />
+        </div>
       </motion.div>
-      <motion.p
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="text-lg text-ink-medium italic leading-relaxed"
+        className="px-6"
       >
-        &ldquo;{comparison.description}&rdquo;
-      </motion.p>
-      <motion.p
+        <p className="text-2xl text-ink-dark italic leading-relaxed serif-heading font-light">
+          &ldquo;{comparison.description}&rdquo;
+        </p>
+      </motion.div>
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="text-sm text-ink-light mt-6"
+        transition={{ delay: 0.7 }}
+        className="mt-10 flex flex-col items-center"
       >
-        {stats.fun.totalCharactersRead.toLocaleString()} characters read
-      </motion.p>
+        <div className="h-px w-12 bg-parchment mb-4"></div>
+        <p className="text-xs text-ink-light uppercase tracking-[0.2em]">
+          {stats.fun.totalCharactersRead.toLocaleString()} characters transcribed
+        </p>
+      </motion.div>
     </div>
   );
 }
@@ -425,25 +461,25 @@ function FunFactsSlide({ stats }: { stats: ProcessedStats }) {
 function SummarySlide({ stats, onShare }: { stats: ProcessedStats; onShare: () => void }) {
   return (
     <div className="text-center py-4">
-      <div className="chapter-divider mb-6 max-w-xs mx-auto">
-        <span className="text-sm tracking-widest uppercase">Your Story</span>
+      <div className="chapter-divider mb-10 max-w-xs mx-auto">
+        <span>THE FINAL PAGE</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-8">
-        <StatBox value={stats.core.totalBooksStarted} label="Books" color="leather" />
+      <div className="grid grid-cols-2 gap-4 mb-10">
+        <StatBox value={stats.core.totalBooksStarted} label="Volumes" color="leather" />
         <StatBox value={stats.core.totalPagesRead.toLocaleString()} label="Pages" color="forest" />
-        <StatBox value={formatReadingTime(stats.core.totalReadingTimeSeconds)} label="Reading Time" color="gold" />
-        <StatBox value={stats.core.longestStreak} label="Day Streak" color="bookmarker" />
+        <StatBox value={formatReadingTime(stats.core.totalReadingTimeSeconds)} label="Duration" color="gold" />
+        <StatBox value={stats.core.longestStreak} label="Streak" color="bookmarker" />
       </div>
 
       <motion.button
         onClick={onShare}
-        className="bookmark-btn w-full py-4 rounded-lg flex items-center justify-center gap-3 text-lg"
-        whileHover={{ scale: 1.02 }}
+        className="bookmark-btn w-full py-5 rounded-xl flex items-center justify-center gap-4 text-xl shadow-lg shadow-leather/20"
+        whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
       >
-        <ShareIcon size={20} />
-        Share Your Wrapped
+        <ShareIcon size={24} />
+        Share Your Journey
       </motion.button>
     </div>
   );

@@ -31,17 +31,19 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="bg-paper-cream border-b border-parchment sticky top-0 z-50">
+    <nav className="bg-paper-cream/80 backdrop-blur-md border-b border-parchment sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 text-ink-dark hover:text-leather transition-colors">
-            <BookIcon size={24} className="text-leather" />
-            <span className="font-[family-name:var(--font-playfair)] font-bold text-xl">KoReader Wrapped</span>
+          <Link href="/" className="flex items-center gap-3 text-ink-dark hover:text-leather transition-all group">
+            <div className="w-10 h-10 rounded-lg bg-paper-sepia border border-parchment flex items-center justify-center group-hover:rotate-3 transition-transform">
+              <BookIcon size={24} className="text-leather" />
+            </div>
+            <span className="serif-heading font-bold text-2xl tracking-tight">KoReader Wrapped</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-10">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = pathname === link.href;
@@ -49,7 +51,7 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-2 text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-2.5 text-sm font-semibold tracking-wide transition-all hover:translate-y-[-1px] ${
                     isActive ? "text-leather" : "text-ink-medium hover:text-ink-dark"
                   }`}
                 >
@@ -61,14 +63,14 @@ export default function Navbar() {
           </div>
 
           {/* Auth Buttons (Desktop) */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-6">
             {status === "loading" ? (
               <div className="w-8 h-8 rounded-full bg-parchment animate-pulse" />
             ) : session ? (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-6">
                  <Link
                   href="/profile"
-                  className={`text-sm font-medium transition-colors ${
+                  className={`text-sm font-semibold tracking-wide transition-all hover:translate-y-[-1px] ${
                     pathname === "/profile" ? "text-leather" : "text-ink-medium hover:text-ink-dark"
                   }`}
                 >
@@ -76,7 +78,7 @@ export default function Navbar() {
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
-                  className="text-sm font-medium text-ink-medium hover:text-bookmarker transition-colors"
+                  className="text-sm font-semibold tracking-wide text-ink-medium hover:text-bookmarker transition-all hover:translate-y-[-1px]"
                 >
                   Sign Out
                 </button>
@@ -84,7 +86,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/auth/signin"
-                className="bookmark-btn py-2 px-4 rounded-lg text-sm shadow-sm"
+                className="bookmark-btn py-2.5 px-6 rounded-lg text-sm shadow-md hover:shadow-lg transition-all"
               >
                 Sign In
               </Link>

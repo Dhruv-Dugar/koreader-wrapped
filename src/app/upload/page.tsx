@@ -84,22 +84,25 @@ export default function UploadPage() {
   }
 
   return (
-    <main className="min-h-screen text-ink-dark flex flex-col">
-      <div className="flex-1 flex items-center justify-center p-4">
+    <main className="min-h-screen text-ink-dark flex flex-col paper-texture">
+      <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-2xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-8"
+            className="text-center mb-12"
           >
-            <div className="chapter-divider mb-6 max-w-xs mx-auto">
-              <span className="text-sm tracking-widest uppercase">Chapter II</span>
+            <div className="chapter-divider mb-8 max-w-xs mx-auto">
+              <span>CHAPTER II</span>
             </div>
-            <h1 className="font-[family-name:var(--font-playfair)] text-3xl md:text-4xl font-bold mb-4">
-              Upload Your Reading Data
+            <h1 className="serif-heading text-4xl md:text-5xl font-bold mb-6">
+              The Ledger of Your Travels
             </h1>
-            <p className="text-ink-medium">
-              Drop your <code className="bg-parchment px-2 py-1 rounded text-leather text-sm">statistics.sqlite3</code> file below
+            <p className="text-ink-medium text-lg font-light leading-relaxed">
+              Upload your <code className="bg-parchment/50 px-2 py-0.5 rounded text-leather text-sm border border-parchment font-mono">statistics.sqlite3</code> file to unveil your reading journey.
+            </p>
+            <p className="text-ink-light text-xs mt-4 italic font-light">
+              Your file is stored securely for your history and leaderboard.
             </p>
           </motion.div>
 
