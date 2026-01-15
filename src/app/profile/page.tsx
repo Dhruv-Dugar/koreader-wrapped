@@ -50,13 +50,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen text-ink-dark flex flex-col">
-      <header className="container mx-auto px-4 py-6">
-        <Link href="/" className="inline-flex items-center gap-2 text-ink-medium hover:text-ink-dark transition-colors">
-          <BookIcon size={20} />
-          <span className="font-[family-name:var(--font-playfair)] font-semibold">KoReader Wrapped</span>
-        </Link>
-      </header>
+    <main className="min-h-screen text-ink-dark flex flex-col pt-20">
       <div className="flex-1 flex flex-col items-center p-4">
         <div className="w-full max-w-2xl">
           <div className="text-center mb-8">

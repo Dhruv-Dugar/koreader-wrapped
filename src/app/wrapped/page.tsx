@@ -118,36 +118,7 @@ function Slideshow({ initialStats }: { initialStats: ProcessedStats & { rawBooks
   const prevSlide = () => setCurrentSlide((prev) => Math.max(prev - 1, 0));
 
   return (
-    <main className="min-h-screen text-ink-dark flex flex-col overflow-hidden paper-texture">
-      {/* Header */}
-      <header className="container mx-auto px-6 py-6 flex items-center justify-between z-10">
-        <Link href="/" className="flex items-center gap-3 text-ink-medium hover:text-leather transition-all group">
-          <div className="w-8 h-8 rounded bg-paper-sepia border border-parchment flex items-center justify-center group-hover:rotate-3 transition-transform">
-            <BookIcon size={18} className="text-leather" />
-          </div>
-          <span className="serif-heading font-bold text-xl tracking-tight">KoReader Wrapped</span>
-        </Link>
-        <div className="flex items-center gap-6">
-          <div className="relative group">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value === 'all-time' ? 'all-time' : Number(e.target.value))}
-              className="appearance-none bg-paper-sepia border border-parchment rounded-lg px-4 py-1.5 text-sm font-semibold text-ink-medium cursor-pointer hover:border-leather/30 transition-colors pr-8"
-            >
-              <option value="all-time">All Time</option>
-              {availableYears.map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-ink-light">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="m6 9 6 6 6-6"/></svg>
-            </div>
-          </div>
-          <span className="page-number font-mono text-xs text-ink-light uppercase tracking-widest bg-paper-sepia/50 px-3 py-1.5 rounded-full border border-parchment/30">
-            Page {currentSlide + 1} / {slides.length}
-          </span>
-        </div>
-      </header>
+    <main className="min-h-screen text-ink-dark flex flex-col overflow-hidden paper-texture pt-20">
 
       {/* Progress bar styled as bookmark ribbon */}
       <div className="relative h-1 bg-parchment/30 overflow-visible">
@@ -198,6 +169,28 @@ function Slideshow({ initialStats }: { initialStats: ProcessedStats & { rawBooks
 
       {/* Navigation */}
       <div className="container mx-auto px-6 py-10 relative z-10">
+        {/* Year Selector and Page Number */}
+        <div className="flex justify-center items-center gap-6 mb-6 max-w-xl mx-auto">
+          <div className="relative group">
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value === 'all-time' ? 'all-time' : Number(e.target.value))}
+              className="appearance-none bg-paper-sepia border border-parchment rounded-lg px-4 py-2 text-sm font-semibold text-ink-medium cursor-pointer hover:border-leather/30 transition-colors pr-8"
+            >
+              <option value="all-time">All Time</option>
+              {availableYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-ink-light">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+          </div>
+          <span className="page-number font-mono text-sm text-ink-light uppercase tracking-widest bg-paper-sepia/50 px-4 py-2 rounded-full border border-parchment/30">
+            Page {currentSlide + 1} of {slides.length}
+          </span>
+        </div>
+
         <div className="flex justify-between items-center max-w-xl mx-auto">
           <button
             onClick={prevSlide}

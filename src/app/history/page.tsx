@@ -47,7 +47,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <main className="min-h-screen text-ink-dark flex flex-col paper-texture">
+    <main className="min-h-screen text-ink-dark flex flex-col paper-texture pt-20">
       <div className="flex-1 flex flex-col items-center p-6 py-12">
         <div className="w-full max-w-2xl">
           <div className="text-center mb-12">

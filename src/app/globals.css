@@ -7,6 +7,7 @@
   --paper-sepia: #f4eee5;
   --parchment: #e8dfd3;
   --paper-shadow: #d4c9b9;
+  --paper-texture-opacity: 0.4;
 
   /* Text Colors */
   --ink-dark: #2c1810;
@@ -18,6 +19,7 @@
   --leather-dark: #6b4423;
   --bookmarker-red: #c41e3a;
   --gold-foil: #c9a227;
+  --gold-shimmer: #fcf6ba;
   --forest-green: #2d5a3d;
 
   /* Theme Variables */
@@ -35,7 +37,8 @@
     --paper-cream: #1a1814;
     --paper-sepia: #242018;
     --parchment: #2e2820;
-    --paper-shadow: #1a1612;
+    --paper-shadow: #000000;
+    --paper-texture-opacity: 0.2;
 
     --ink-dark: #e8dfd3;
     --ink-medium: #c4b8a8;
@@ -45,8 +48,9 @@
     --leather-dark: #a87d55;
     --bookmarker-red: #e85a70;
     --gold-foil: #dbb847;
+    --gold-shimmer: #ffeebb;
 
-    --background: var(--paper-cream);
+    --background: #12100e;
     --foreground: var(--ink-dark);
     --card-bg: var(--paper-sepia);
     --border-color: var(--parchment);
@@ -83,33 +87,51 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-body, 'Lora', Georgia, serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Paper texture overlay */
+/* Selection Style */
+::selection {
+  background: var(--accent);
+  color: var(--paper-cream);
+  text-shadow: none;
+}
+
+/* Improved Paper Texture */
 .paper-texture {
   position: relative;
 }
 
 .paper-texture::before {
   content: '';
-  position: absolute;
+  position: fixed;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.04;
   pointer-events: none;
+  z-index: 50;
   mix-blend-mode: multiply;
 }
 
-/* Book card styling */
+@media (prefers-color-scheme: dark) {
+  .paper-texture::before {
+    mix-blend-mode: soft-light;
+    opacity: 0.03;
+  }
+}
+
+/* 3D Book Card Effect */
 .book-card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   box-shadow:
-    0 1px 3px rgba(44, 24, 16, 0.08),
-    0 4px 12px rgba(44, 24, 16, 0.04);
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 4px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
   position: relative;
   overflow: hidden;
+  transform-style: preserve-3d;
 }
 
 .book-card::after {
@@ -119,64 +141,91 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%);
+  background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.05) 0%, transparent 70%);
   pointer-events: none;
 }
 
 .book-card:hover {
+  transform: translateY(-6px) scale(1.01);
   box-shadow:
-    0 10px 20px rgba(44, 24, 16, 0.1),
-    0 15px 45px rgba(44, 24, 16, 0.05);
-  transform: translateY(-4px);
-  border-color: var(--leather-brown);
+    0 12px 24px -6px rgba(44, 24, 16, 0.15),
+    0 4px 8px -2px rgba(44, 24, 16, 0.1);
+  border-color: var(--accent);
 }
 
-/* Bookmark button */
+/* Premium Bookmark Button */
 .bookmark-btn {
   background: var(--accent);
   color: var(--paper-cream);
   font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 10px rgba(139, 90, 43, 0.3);
+  box-shadow: 0 4px 12px rgba(139, 90, 43, 0.25);
+  z-index: 1;
+}
+
+.bookmark-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform: translateX(-100%);
+  transition: 0.6s;
+}
+
+.bookmark-btn:hover::before {
+  transform: translateX(100%);
 }
 
 .bookmark-btn:hover {
   background: var(--accent-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(139, 90, 43, 0.4);
+  box-shadow: 0 8px 20px rgba(139, 90, 43, 0.35);
 }
 
 .bookmark-btn:active {
   transform: translateY(0);
 }
 
-/* Gold foil text effect */
+/* Dynamic Gold Foil Text */
 .gold-foil-text {
+  color: transparent;
   background: linear-gradient(
     45deg,
-    #bf953f,
-    #fcf6ba,
-    #b38728,
-    #fbf5b7,
-    #aa771c
+    var(--gold-foil) 0%,
+    var(--gold-shimmer) 25%,
+    var(--gold-foil) 50%,
+    #aa771c 75%,
+    var(--gold-foil) 100%
   );
+  background-size: 200% auto;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+  background-clip: text;
+  animation: shine 4s linear infinite;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.05);
 }
 
-/* Chapter divider */
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* Elegant Divider */
 .chapter-divider {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
   color: var(--ink-light);
   font-family: var(--font-serif);
   font-style: italic;
-  font-size: 0.875rem;
-  letter-spacing: 0.2em;
+  font-size: 0.9rem;
+  letter-spacing: 0.25em;
+  opacity: 0.8;
 }
 
 .chapter-divider::before,
@@ -187,69 +236,63 @@ body {
   background: linear-gradient(
     to right,
     transparent,
-    var(--border-color) 20%,
-    var(--border-color) 80%,
+    var(--ink-light),
     transparent
   );
-}
-
-/* Elegant serif heading */
-.serif-heading {
-  font-family: var(--font-serif);
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-}
-
-/* Decorative corner ornaments */
-.corner-ornament {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--parchment);
-  pointer-events: none;
-}
-
-.corner-top-left { top: 1rem; left: 1rem; border-right: 0; border-bottom: 0; }
-.corner-top-right { top: 1rem; right: 1rem; border-left: 0; border-bottom: 0; }
-.corner-bottom-left { bottom: 1rem; left: 1rem; border-right: 0; border-top: 0; }
-.corner-bottom-right { bottom: 1rem; right: 1rem; border-left: 0; border-top: 0; }
-
-/* Page number styling */
-.page-number {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 0.75rem;
-  color: var(--ink-light);
-  letter-spacing: 0.05em;
-}
-
-/* Decorative quotation marks */
-.quote-mark {
-  font-family: var(--font-serif, 'Playfair Display', serif);
-  font-size: 4rem;
-  line-height: 1;
-  color: var(--leather-brown);
   opacity: 0.3;
 }
 
-/* Scroll styling */
+/* Typography Enhancements */
+.serif-heading {
+  font-family: var(--font-serif);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+/* Corner Ornaments with SVG feeling but pure CSS borders */
+.corner-ornament {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--parchment);
+  transition: all 0.3s ease;
+  opacity: 0.6;
+}
+
+.book-card:hover .corner-ornament {
+  width: 32px;
+  height: 32px;
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+.corner-top-left { top: 1.5rem; left: 1.5rem; border-right: 0; border-bottom: 0; }
+.corner-top-right { top: 1.5rem; right: 1.5rem; border-left: 0; border-bottom: 0; }
+.corner-bottom-left { bottom: 1.5rem; left: 1.5rem; border-right: 0; border-top: 0; }
+.corner-bottom-right { bottom: 1.5rem; right: 1.5rem; border-left: 0; border-top: 0; }
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--parchment);
+  background: var(--background);
+  border-left: 1px solid var(--border-color);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--ink-light);
-  border-radius: 4px;
+  background: var(--parchment);
+  border: 2px solid var(--background);
+  border-radius: 5px;
+  transition: background 0.3s;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ink-medium);
+  background: var(--ink-light);
 }
 
-/* Page turn animation keyframes */
+/* Page Turn Animation */
 @keyframes pageTurn {
   0% {
     transform: perspective(1200px) rotateY(0deg);
@@ -263,4 +306,13 @@ body {
 
 .page-turn-enter {
   animation: pageTurn 0.6s ease-in-out forwards;
+}
+
+/* Decorative quotation marks */
+.quote-mark {
+  font-family: var(--font-serif, 'Playfair Display', serif);
+  font-size: 4rem;
+  line-height: 1;
+  color: var(--leather-brown);
+  opacity: 0.3;
 }

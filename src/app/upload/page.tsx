@@ -84,7 +84,7 @@ export default function UploadPage() {
   }
 
   return (
-    <main className="min-h-screen text-ink-dark flex flex-col paper-texture">
+    <main className="min-h-screen text-ink-dark flex flex-col paper-texture pt-20">
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-2xl">
           <motion.div
